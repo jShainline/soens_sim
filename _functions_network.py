@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 # from matplotlib import pyplot as plt
 import powerlaw
 
@@ -51,6 +52,42 @@ def populate_hierarchy__power_law(num_nodes_0,num_levels_hier,gamma, plot = True
     return hierarchy
 
 
+def populate_hierarchy__geometrical(sqrt_num_nodes_0 = 9, num_levels_hier = 4, plot = True): # power-law hierarchy ( number of modules at level h of hierarchy: M_h = n_0 * h**(-gamma) )
+    
+    num_modules_list = np.zeros([num_levels_hier])
+    num_nodes_list = np.zeros([num_levels_hier])
+    # num_nodes_list[0] = 1
+    
+    num_nodes_0 = sqrt_num_nodes_0**2
+    
+    h_vec = np.arange(1,num_levels_hier+1,1)
+    # print('h_vec = {}'.format(h_vec))
+    for h in h_vec:
+        # num_modules_list[h-1] = np.round( (11 - 2*h)**2 )
+        num_modules_list[h-1] = np.round( (2*(num_levels_hier-h) + 1 )**2 )
+        # print('np.prod( num_modules_list[1:h] ) = {}'.format(np.prod( num_modules_list[1:h] )))
+        num_nodes_list[h-1] = num_nodes_0*np.prod( num_modules_list[1:h] )
+    
+    num_nodes_per_module = num_nodes_list/num_modules_list    
+    total_nodes = num_nodes_list[-1]
+    inter_modular_nodes = num_nodes_list*(1-1/num_modules_list)
+    
+    hierarchy = dict()
+    
+    hierarchy['num_nodes_0'] = num_nodes_0
+    hierarchy['num_levels_hier'] = num_levels_hier
+    hierarchy['h_vec'] = h_vec
+    
+    hierarchy['num_modules_list'] = num_modules_list.astype(int) # number of modules at each level of hierarchy
+    hierarchy['num_nodes_list'] = num_nodes_list.astype(int) # number of nodes at each level of hierarchy
+    hierarchy['num_nodes_per_module'] = num_nodes_per_module.astype(int) # number of nodes per module at each level of hierarchy
+    hierarchy['inter_modular_nodes'] = inter_modular_nodes.astype(int) # number of inter-modular nodes at each level of hierarchy
+    hierarchy['total_num_nodes'] = total_nodes.astype(int) # total number of nodes in the network         
+    hierarchy['num_row_col'] = np.sqrt(total_nodes).astype(int) # number of rows and columns in the square network      
+
+    return hierarchy
+
+
 def generate_degree_distribution(out_degree_functional_form = 'power-law', **kwargs):
     
     if 'num_nodes' in kwargs:
@@ -98,29 +135,83 @@ def generate_degree_distribution(out_degree_functional_form = 'power-law', **kwa
 
 def generate_spatial_structure(hierarchy,out_degree_distribution):
 
-    num_row_col = np.sqrt(total_num_nodes).astype(int)
-    central_node_index = np.round( (np.sqrt(total_num_nodes)-1)/2 +1 )
-    c_coords = [central_node_index-1,central_node_index-1]
-    coords_list = []
-    for ii in range(num_row_col):
-        for jj in range(num_row_col):
-            coords_list.append(np.asarray([ii,jj]))
     
-    coords_list_full = copy.deepcopy(coords_list) # make backup 
-    node_coords = []
-    node_x_coords = []
-    node_y_coords = []
-    for ii in range(num_nodes):
+    # assign node coordinates within module
+    num_row_col__nodes__level_1 = np.sqrt(hierarchy['num_modules_list'][0]).astype(int)
+    num_nodes_per_module__level_1 = hierarchy['num_modules_list'][0]
+        
+    coords_list = []
+    for ii in range(num_row_col__nodes__level_1):
+        for jj in range(num_row_col__nodes__level_1):
+            coords_list.append(np.asarray([ii,jj]))
+            
+    central_node_index = np.round( (np.sqrt(hierarchy['num_modules_list'][0])-1)/2 +1 )
+    c_coords = [central_node_index-1,central_node_index-1]
+    intra_module_coords__template = []
+    for ii in range(num_nodes_per_module__level_1):
         
         distance_list = np.zeros([len(coords_list)])
         for jj in range(len(coords_list)):        
             distance_list[jj] = ( (coords_list[jj][0]-c_coords[0])**2 + (coords_list[jj][1]-c_coords[1])**2 )**(1/2) # euclidean distance
-            
+    
         ind = np.argmin( distance_list )
-        node_coords.append( coords_list[ind] )
-        node_x_coords.append(node_coords[-1][0])
-        node_y_coords.append(node_coords[-1][1])
+        intra_module_coords__template.append( coords_list[ind] )
         coords_list = np.delete(coords_list,ind,0) 
+    
+    # assign module coordinates relative to bottom left
+    num_modules_level_1 = np.prod(hierarchy['num_modules_list'][1:-1])
+    num_row_col__modules = np.sqrt(num_modules_level_1).astype(int)
+    
+    module_index__start_corner = np.zeros([num_modules_level_1])
+    module_coords__start_corner = []
+    module_coords__start_center = []
+    for ii in range(num_modules_level_1):
+        module_index__start_corner[ii] = ii 
+        nn = np.floor(ii/num_row_col__modules)
+        module_coords__start_corner.append([ii-num_row_col__modules*nn,nn])
+    
+    central_module_index = np.round( (np.sqrt(num_modules_level_1)-1)/2 +1 )
+    central_module_coords = [central_module_index-1,central_module_index-1]
+    module_coords_list = copy.deepcopy(module_coords__start_corner)
+    for ii in range(num_modules_level_1):
+        
+        distance_list = np.zeros([len(module_coords_list)])
+        for jj in range(len(module_coords_list)):
+            distance_list[jj] = ( (module_coords_list[jj][0]-central_module_coords[0])**2 + (module_coords_list[jj][1]-central_module_coords[1])**2 )**(1/2) # euclidean distance
+    
+        ind = np.argmin( distance_list )
+        module_coords__start_center.append( module_coords_list[ind] )
+        module_coords_list = np.delete(module_coords_list,ind,0)
+      
+    # go through all modules, assigning nodes in descending order of out degree
+    node_coords = []
+    num_nodes_per_module = hierarchy['num_modules_list'][0]
+    tn = num_row_col__nodes__level_1
+    ta1 = module_coords__start_center
+    ta2 = intra_module_coords__template
+    # print(np.shape(ta1))
+    # print(num_modules_level_1)
+    # print(np.shape(ta2))
+    # print(num_nodes_per_module)
+    for ii in range(num_nodes_per_module):
+        for jj in range(num_modules_level_1):
+            node_coords.append( [ tn*ta1[jj][0]+ta2[ii][0] , tn*ta1[jj][1]+ta2[ii][1]  ] ) 
+             
+    total_num_nodes = hierarchy['total_num_nodes']
+    num_row_col__nodes = hierarchy['num_row_col']
+            
+    print(np.shape(node_coords))
+    degree_xy = np.zeros([num_row_col__nodes,num_row_col__nodes])
+    for ii in range(total_num_nodes):
+        # print('mm_ii = {}, nn_ii = {}'.format(mm_ii,nn_ii))
+        degree_xy[node_coords[ii][0].astype(int),node_coords[ii][1].astype(int)] = out_degree_distribution['node_degrees'][ii]
+    
+    spatial_information = dict()
+    spatial_information['module_index__start_corner'] = module_index__start_corner
+    spatial_information['module_coords__start_corner'] = module_coords__start_corner
+    spatial_information['module_coords__start_center'] = module_coords__start_center
+    spatial_information['node_coords'] = node_coords
+    spatial_information['degree_xy'] = degree_xy
     
     return spatial_information
 

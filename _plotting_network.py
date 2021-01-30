@@ -8,7 +8,7 @@ colors = color_dictionary()
 
 #%%
 
-def plot_hierarchy(hierarchy):
+def plot_hierarchy__power_law(hierarchy):
     
     num_nodes_0 = hierarchy['num_nodes_0']
     num_levels_hier = hierarchy['num_levels_hier']
@@ -19,10 +19,49 @@ def plot_hierarchy(hierarchy):
     num_nodes_list = hierarchy['num_nodes_list']
     num_nodes_per_module = hierarchy['num_nodes_per_module']
     inter_modular_nodes = hierarchy['inter_modular_nodes']
-    total_nodes = hierarchy['total_nodes']
+    total_nodes = hierarchy['total_num_nodes']
     
     fig, ax = plt.subplots(nrows = 2, ncols = 2, sharex = True, sharey = False)
     fig.suptitle('Population of network hierarchy, power-law construction\nnum_levels_hier = {:d}, num_nodes_0 = {:d}, gamma = {:5.2f}, num_mod_H = {:d}, \nTotal nodes = {:5.2e}'.format(num_levels_hier,num_nodes_0,gamma,num_modules_list[-1].astype(int),total_nodes))
+    
+    ax[0,0].plot(h_vec,num_modules_list, '-o', color = colors['blue3'])
+    ax[0,0].set_xlabel(r'Hierarchy Level')
+    ax[0,0].set_ylabel(r'Num Modules')
+    # ax[0].set_ylim([0,num_nodes_0*1.1])
+    # ax[0].legend()
+    
+    ax[0,1].semilogy(h_vec,num_nodes_per_module, '-o', color = colors['blue3'])
+    ax[0,1].set_xlabel(r'Hierarchy Level')
+    ax[0,1].set_ylabel(r'Neurons per module at this level of hierarchy')
+    
+    ax[1,0].semilogy(h_vec,num_nodes_list, '-o', color = colors['blue3'])
+    ax[1,0].set_xlabel(r'Hierarchy Level')
+    ax[1,0].set_ylabel(r'Total neurons at this level of hierarchy')
+    # ax[1].legend()
+    
+    ax[1,1].semilogy(h_vec,inter_modular_nodes, '-o', color = colors['blue3'])
+    ax[1,1].set_xlabel(r'Hierarchy Level')
+    ax[1,1].set_ylabel(r'Number of inter-modular neurons at this level of hierarchy')
+    
+    plt.show()
+
+    return
+
+
+def plot_hierarchy__geometrical(hierarchy):
+    
+    num_nodes_0 = hierarchy['num_nodes_0']
+    num_levels_hier = hierarchy['num_levels_hier']
+    h_vec = hierarchy['h_vec']
+    
+    num_modules_list = hierarchy['num_modules_list']
+    num_nodes_list = hierarchy['num_nodes_list']
+    num_nodes_per_module = hierarchy['num_nodes_per_module']
+    inter_modular_nodes = hierarchy['inter_modular_nodes']
+    total_nodes = hierarchy['total_num_nodes']
+    
+    fig, ax = plt.subplots(nrows = 2, ncols = 2, sharex = True, sharey = False)
+    fig.suptitle('Population of network hierarchy, power-law construction\nnum_levels_hier = {:d}, num_nodes_0 = {:d}, num_mod_H = {:d}, \nTotal nodes = {:5.2e}'.format(num_levels_hier,num_nodes_0,num_modules_list[-1].astype(int),total_nodes))
     
     ax[0,0].plot(h_vec,num_modules_list, '-o', color = colors['blue3'])
     ax[0,0].set_xlabel(r'Hierarchy Level')
@@ -103,38 +142,43 @@ def plot_out_degree_distribution(out_degree_distribution,num_bins):
 
     return
 
-def plot_node_degree_vs_space():
+
+def plot_node_degree_vs_space(hierarchy,spatial_information):
     
-    fig, ax = plt.subplots(nrows = 1, ncols = 1, sharex = False, sharey = False)
-    fig.suptitle('x-y positions of nodes')
+    num_row_col__nodes = hierarchy['num_row_col']
     
-    degree_vec = np.linspace(1,num_nodes,num_nodes)
-    ax.plot(node_x_coords,node_y_coords, '-o', color = colors['blue3'])
-    ax.plot(node_x_coords[0],node_y_coords[0], '-o', color = colors['green3'], label = 'first')
-    ax.plot(node_x_coords[1],node_y_coords[1], '-o', color = colors['yellow3'], label = 'second')
-    ax.plot(node_x_coords[-1],node_y_coords[-1], '-o', color = colors['red3'], label = 'last')
-    ax.set_xlabel(r'x coord')
-    ax.set_ylabel(r'y coord')
-    ax.set_xlim([-1,num_row_col])
-    ax.set_ylim([-1,num_row_col])
-    ax.legend()
-        
-    degree__mn = np.zeros([num_row_col,num_row_col])
-    mm_ii = node_x_coords
-    nn_ii = node_y_coords
-    for ii in range(num_nodes):
-        # print('mm_ii = {}, nn_ii = {}'.format(mm_ii,nn_ii))
-        degree__mn[mm_ii[ii],nn_ii[ii]] = node_degrees[ii]
+    # fig, ax = plt.subplots(nrows = 1, ncols = 1, sharex = False, sharey = False)
+    # fig.suptitle('x-y positions of nodes')
     
-    fig, ax = plt.subplots(nrows = 1, ncols = 1, sharex = False, sharey = False)
+    # degree_vec = np.linspace(1,num_nodes,num_nodes)
+    # ax.plot(node_x_coords,node_y_coords, '-o', color = colors['blue3'])
+    # ax.plot(node_x_coords[0],node_y_coords[0], '-o', color = colors['green3'], label = 'first')
+    # ax.plot(node_x_coords[1],node_y_coords[1], '-o', color = colors['yellow3'], label = 'second')
+    # ax.plot(node_x_coords[-1],node_y_coords[-1], '-o', color = colors['red3'], label = 'last')
+    # ax.set_xlabel(r'x coord')
+    # ax.set_ylabel(r'y coord')
+    # ax.set_xlim([-1,num_row_col])
+    # ax.set_ylim([-1,num_row_col])
+    # ax.legend()
+
     
-    degree = ax.imshow(np.transpose(degree__mn[:,:]), cmap = plt.cm.viridis, interpolation='none', extent=[0,num_row_col-1,0,num_row_col-1], aspect = 'auto', origin = 'lower')
+    fig, ax = plt.subplots(nrows = 1, ncols = 1, sharex = False, sharey = False)    
+    degree = ax.imshow(np.transpose(spatial_information['degree_xy'][:,:]), cmap = plt.cm.viridis, interpolation='none', extent=[0,num_row_col__nodes-1,0,num_row_col__nodes-1], aspect = 'auto', origin = 'lower')
     cbar = fig.colorbar(degree, extend='both')
     cbar.minorticks_on()     
-    fig.suptitle('designed node degrees vs x-y positions')
+    fig.suptitle('Node out-degrees vs x-y positions')
     ax.set_xlabel(r'x coord')
     ax.set_ylabel(r'y coord')   
     plt.show()
+    
+    fig, ax = plt.subplots(nrows = 1, ncols = 1, sharex = False, sharey = False)    
+    degree = ax.imshow(np.transpose(np.log10(spatial_information['degree_xy'][:,:])), cmap = plt.cm.viridis, interpolation='none', extent=[0,num_row_col__nodes-1,0,num_row_col__nodes-1], aspect = 'auto', origin = 'lower')
+    cbar = fig.colorbar(degree, extend='both')
+    cbar.minorticks_on()     
+    fig.suptitle('log10 of node out-degrees vs x-y positions')
+    ax.set_xlabel(r'x coord')
+    ax.set_ylabel(r'y coord')   
+    plt.show()    
     
     return
 

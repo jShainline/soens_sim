@@ -2,8 +2,8 @@ import numpy as np
 import networkx as nx
 from matplotlib import pyplot as plt
 
-from _functions_network import populate_hierarchy__power_law, generate_degree_distribution, generate_spatial_structure
-from _plotting_network import plot_hierarchy, plot_out_degree_distribution, plot_node_degree_vs_space
+from _functions_network import populate_hierarchy__power_law, populate_hierarchy__geometrical, generate_degree_distribution, generate_spatial_structure
+from _plotting_network import plot_hierarchy__power_law, plot_hierarchy__geometrical, plot_out_degree_distribution, plot_node_degree_vs_space
 
 plt.close('all')
 
@@ -22,15 +22,20 @@ print('constructing network hierarchy ... ')
 num_levels_hier = 3
 num_nodes_0 = 7**2
 gamma = 2
+# hierarchy = populate_hierarchy__power_law(num_nodes_0,num_levels_hier,float(gamma))
+# plot_hierarchy__power_law(hierarchy)
 
-hierarchy = populate_hierarchy__power_law(num_nodes_0,num_levels_hier,float(gamma))
-plot_hierarchy(hierarchy)
+# geometrical hierarchy
+num_levels_hier = 4
+sqrt_num_nodes_0 = 7
+hierarchy = populate_hierarchy__geometrical(sqrt_num_nodes_0,num_levels_hier)
+plot_hierarchy__geometrical(hierarchy)
 
 #%% generate out-degree distribution
 
 print('generating out-degree distribution ... ')
 
-degree_distribution__functional_form = 'power_law' # 'gaussian' or 'power_law'
+degree_distribution__functional_form = 'gaussian' # 'gaussian' or 'power_law'
 # note that we can let alpha = 0 in the power-law distribution for a random degree distribution or we can let st_dev = 0 in the gaussian distribution for a delta function (all nodes same degree)
 
 if degree_distribution__functional_form == 'gaussian':
@@ -38,14 +43,14 @@ if degree_distribution__functional_form == 'gaussian':
     # gaussian degree params
     center = 40 # mean of gaussian distribution
     st_dev = 5 # standard deviation of gaussian distribution    
-    out_degree_distribution = generate_degree_distribution(degree_distribution__functional_form, center = center, st_dev = st_dev, num_nodes = hierarchy['total_nodes'])
+    out_degree_distribution = generate_degree_distribution(degree_distribution__functional_form, center = center, st_dev = st_dev, num_nodes = hierarchy['total_num_nodes'])
     
 elif degree_distribution__functional_form == 'power_law':
     
     # power-law degree params
     k_out_min = 2 # minimum degree allowed
     alpha = 2 # exponent, p(k) ~ k**(-alpha)
-    out_degree_distribution = generate_degree_distribution(degree_distribution__functional_form, k_out_min = k_out_min, alpha = alpha, num_nodes = hierarchy['total_nodes'])
+    out_degree_distribution = generate_degree_distribution(degree_distribution__functional_form, k_out_min = k_out_min, alpha = alpha, num_nodes = hierarchy['total_num_nodes'])
     
 num_bins = 10    
 plot_out_degree_distribution(out_degree_distribution,num_bins)
@@ -66,14 +71,14 @@ print('assigning spatial coordinates ... ')
 
 spatial_information = generate_spatial_structure(hierarchy,out_degree_distribution)
     
-plot_node_degree_vs_space()    
+plot_node_degree_vs_space(hierarchy,spatial_information)    
     
 
-#%% establish corner-referred indexing
+# #%% establish corner-referred indexing
 
-index__corner_referred = np.zeros([total_nodes])
+# index__corner_referred = np.zeros([total_nodes])
 
-for ii in range(total_nodes):
+# for ii in range(total_nodes):
 
 
 
