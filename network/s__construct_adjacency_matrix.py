@@ -2,7 +2,7 @@ import numpy as np
 import networkx as nx
 from matplotlib import pyplot as plt
 
-from _functions_network import populate_hierarchy__power_law, populate_hierarchy__geometrical, generate_degree_distribution, generate_spatial_structure
+from _functions_network import populate_hierarchy__power_law, populate_hierarchy__geometrical, generate_degree_distribution, generate_spatial_structure, determine_indices
 from _plotting_network import plot_hierarchy__power_law, plot_hierarchy__geometrical, plot_out_degree_distribution, plot_node_degree_vs_space
 
 plt.close('all')
@@ -74,6 +74,10 @@ spatial_information = generate_spatial_structure(hierarchy,out_degree_distributi
 plot_node_degree_vs_space(hierarchy,spatial_information)    
     
 
+#%% find indices of nodes within and external to each module at each level of hierarchy
+
+indices_arrays = determine_indices(hierarchy,spatial_information)
+
 # #%% establish corner-referred indexing
 
 # index__corner_referred = np.zeros([total_nodes])
@@ -87,9 +91,9 @@ plot_node_degree_vs_space(hierarchy,spatial_information)
 #%% make connections
 
 # exponential decay params
-decay_length = 5 # units of lattice constant
+# decay_length = 5 # units of lattice constant
 
-num_bins = 20 # for plotting
+# num_bins = 20 # for plotting
 
 
 
