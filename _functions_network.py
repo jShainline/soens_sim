@@ -52,19 +52,21 @@ def populate_hierarchy__power_law(num_nodes_0,num_levels_hier,gamma, plot = True
     return hierarchy
 
 
-def populate_hierarchy__geometrical(sqrt_num_nodes_0 = 9, num_levels_hier = 4, plot = True): # power-law hierarchy ( number of modules at level h of hierarchy: M_h = n_0 * h**(-gamma) )
+def populate_hierarchy__geometrical(num_row_col_0 = 9, delta_num_row_col = 2, num_levels_hier = 4, plot = True): # power-law hierarchy ( number of modules at level h of hierarchy: M_h = n_0 * h**(-gamma) )
     
     num_modules_list = np.zeros([num_levels_hier])
     num_nodes_list = np.zeros([num_levels_hier])
     # num_nodes_list[0] = 1
     
-    num_nodes_0 = sqrt_num_nodes_0**2
+    num_nodes_0 = num_row_col_0**2
+    a = delta_num_row_col
+    b = num_row_col_0+delta_num_row_col
     
     h_vec = np.arange(1,num_levels_hier+1,1)
     # print('h_vec = {}'.format(h_vec))
     for h in h_vec:
         # num_modules_list[h-1] = np.round( (11 - 2*h)**2 )
-        num_modules_list[h-1] = np.round( (2*(num_levels_hier-h) + 1 )**2 )
+        num_modules_list[h-1] = np.round( ( b-a*h )**2 )
         # print('np.prod( num_modules_list[1:h] ) = {}'.format(np.prod( num_modules_list[1:h] )))
         num_nodes_list[h-1] = num_nodes_0*np.prod( num_modules_list[1:h] )
     
@@ -72,6 +74,10 @@ def populate_hierarchy__geometrical(sqrt_num_nodes_0 = 9, num_levels_hier = 4, p
     total_nodes = num_nodes_list[-1]
     inter_modular_nodes = num_nodes_list*(1-1/num_modules_list)
     
+    # num_sub_modules_list = np.zeros([num_levels_hier-1])
+    # for ii in range(num_levels_hier-1):
+    #     num_sub_modules_list[ii] = num_modules_list[ii]/num_modules_list[ii+1]
+           
     hierarchy = dict()
     
     hierarchy['num_nodes_0'] = num_nodes_0
@@ -79,6 +85,8 @@ def populate_hierarchy__geometrical(sqrt_num_nodes_0 = 9, num_levels_hier = 4, p
     hierarchy['h_vec'] = h_vec
     
     hierarchy['num_modules_list'] = num_modules_list.astype(int) # number of modules at each level of hierarchy
+    # hierarchy['num_sub_modules_list'] = num_sub_modules_list.astype(int) # number of sub-modules contained in a module at each level of hierarchy above the lowest
+    # hierarchy['map_to_upper'] = map_to_upper.astype(int) # index of containing module next level up in hierachy for each level of hierarchy except the highest
     hierarchy['num_nodes_list'] = num_nodes_list.astype(int) # number of nodes at each level of hierarchy
     hierarchy['num_nodes_per_module'] = num_nodes_per_module.astype(int) # number of nodes per module at each level of hierarchy
     hierarchy['inter_modular_nodes'] = inter_modular_nodes.astype(int) # number of inter-modular nodes at each level of hierarchy
@@ -88,7 +96,7 @@ def populate_hierarchy__geometrical(sqrt_num_nodes_0 = 9, num_levels_hier = 4, p
     return hierarchy
 
 
-def generate_degree_distribution(out_degree_functional_form = 'power-law', **kwargs):
+def generate_out_degree_distribution(out_degree_functional_form = 'power-law', **kwargs):
     
     if 'num_nodes' in kwargs:
         num_nodes = kwargs['num_nodes']
@@ -210,11 +218,11 @@ def generate_spatial_structure(hierarchy,out_degree_distribution):
         index_remapping__from_degree_to_corner[ii] = num_row_col__nodes*node_coords[ii][0]+node_coords[ii][1]
         
     index_remapping__from_corner_to_degree = np.argsort(index_remapping__from_degree_to_corner)
-    
+
     spatial_information = dict()
-    spatial_information['module_index__start_corner'] = module_index__start_corner
-    spatial_information['module_coords__start_corner'] = module_coords__start_corner
-    spatial_information['module_coords__start_center'] = module_coords__start_center
+    # spatial_information['module_index__start_corner'] = module_index__start_corner
+    # spatial_information['module_coords__start_corner'] = module_coords__start_corner
+    # spatial_information['module_coords__start_center'] = module_coords__start_center
     spatial_information['node_coords'] = node_coords
     spatial_information['degree_xy'] = degree_xy
     spatial_information['index_remapping__from_degree_to_corner'] = index_remapping__from_degree_to_corner
@@ -227,75 +235,92 @@ def determine_indices(h,si):
     
     nrc = h['num_row_col']
     
-    module_max_min_coords__start_corner = []
-    for ii in range(h['num_levels_hier']-1):
+    # module_max_min_coords__start_corner = []
+    h['num_nodes_row_col'] = []
+    h['num_modules_row_col'] = []
+    for ii in range(h['num_levels_hier']):
+        h['num_nodes_row_col'].append( np.sqrt(h['num_nodes_per_module'][ii]) ) # num nodes in each row/col within a module at the lower level of hierarchy
+        h['num_modules_row_col'].append( np.sqrt(h['num_modules_list'][ii]) ) # num modules in each row/col at this level of hierarchy
+    
+    # for ii in range(h['num_levels_hier']-1):
         
-        module_max_min_coords__start_corner.append([])
-        nnrc = np.sqrt(h['num_nodes_per_module'][ii+1]) # num nodes in each row/col within a module at the lower level of hierarchy
-        nmrc = np.sqrt(h['num_modules_list'][ii+1]) # num modules in each row/col at this level of hierarchy
+    #     module_max_min_coords__start_corner.append([])
+    #     nnrc = h['num_nodes_row_col'][ii+1]
+    #     nmrc = h['num_modules_row_col'][ii+1]
         
-        for jj in range(h['num_modules_list'][ii+1]):            
+    #     for jj in range(h['num_modules_list'][ii+1]):            
             
-            nn_jj = np.floor(jj/nmrc)
-            module_max_min_coords__start_corner[ii].append( [ [nn_jj*nnrc,nn_jj*nnrc+nnrc] , [(jj-nmrc*nn_jj)*nnrc,(jj-nmrc*nn_jj)*nnrc+nnrc] ] ) # [[xmin,xmax],[ymin,ymax]]
+    #         nn_jj = np.floor(jj/nmrc)
+    #         module_max_min_coords__start_corner[ii].append( [ [nn_jj*nnrc,nn_jj*nnrc+nnrc] , [(jj-nmrc*nn_jj)*nnrc,(jj-nmrc*nn_jj)*nnrc+nnrc] ] ) # [[xmin,xmax],[ymin,ymax]]
 
-
+    # make indices_arrays__intra
     indices_arrays__intra = []
-    # indices_arrays__inter = []
     temp_vec = np.arange(0,nrc**2,1)
     map_array = np.reshape(temp_vec,[nrc,nrc])
-    for ii in range(h['num_levels_hier']-1):
-        
-        print('\n\nii = {} of {}'.format(ii+1,h['num_levels_hier']-1))
-        
+    for ii in range(h['total_num_nodes']):
+                
         indices_arrays__intra.append([])
         # indices_arrays__inter.append([])
         
-        nrc_tl = np.sqrt(h['num_nodes_per_module'][ii+1]) # num nodes in each row/col within a module at this level of hierarchy
+        _xy = si['node_coords'][ii]
         
-        print('nrc_tl = {}'.format(nrc_tl))
+        for jj in range(h['num_levels_hier']):
+            
+            nrc = h['num_nodes_row_col'][jj]
+                
+            _x1 = ( np.floor(_xy[0]/nrc)*nrc ).astype(int)
+            _y1 = ( np.floor(_xy[1]/nrc)*nrc ).astype(int)
+            _x2 = ( np.ceil(_xy[0]/nrc)*nrc ).astype(int)
+            _y2 = ( np.ceil(_xy[1]/nrc)*nrc ).astype(int)
+            
+            if _x2 == _x1: _x2 += 1
+            if _y2 == _y1: _y2 += 1
+            indices_arrays__intra[ii].append( np.concatenate(map_array[_x1:_x2,_y1:_y2]) )  
+
+    indices_arrays__inter = []
+    for ii in range(h['total_num_nodes']):
+        # print(ii)
+                
+        indices_arrays__inter.append([])
         
-        for jj in range(h['num_modules_list'][ii+1]):
-            nx1 = module_max_min_coords__start_corner[ii][jj][0][0].astype(int)
-            nx2 = module_max_min_coords__start_corner[ii][jj][0][1].astype(int)
-            ny1 = module_max_min_coords__start_corner[ii][jj][1][0].astype(int)
-            ny2 = module_max_min_coords__start_corner[ii][jj][1][1].astype(int)
-            
-            indices_arrays__intra[ii].append( map_array[nx1:nx2,ny1:ny2] )
-            
-            
-                    
-            
-            
-    #         print('\njj = {} of {}'.format(jj+1,h['num_modules_list'][ii+1]))
-    #         module_coords__start_corner[ii].append([])
-    #         nn_jj = np.floor(jj/nrc_tl)
-            
-    #         for kk in range(h['num_modules_list'][ii]):
-            
-    #             print('kk = {} of {}'.format(kk+1,h['num_modules_list'][ii]))
-    #             nn_kk = np.floor(kk/nrc_tl)
-    #             module_coords__start_corner[ii][jj].append([kk-nrc_tl*nn_kk + (jj-nrc_tl*nn_jj)*nrc_tl,nn_kk+jj*nrc_tl])
-        
-        
-    # hierarchy['num_nodes_0'] = num_nodes_0
-    # hierarchy['num_levels_hier'] = num_levels_hier
-    # hierarchy['h_vec'] = h_vec
-    
-    # hierarchy['num_modules_list'] = num_modules_list.astype(int) # number of modules at each level of hierarchy
-    # hierarchy['num_nodes_list'] = num_nodes_list.astype(int) # number of nodes at each level of hierarchy
-    # hierarchy['num_nodes_per_module'] = num_nodes_per_module.astype(int) # number of nodes per module at each level of hierarchy
-    # hierarchy['inter_modular_nodes'] = inter_modular_nodes.astype(int) # number of inter-modular nodes at each level of hierarchy
-    # hierarchy['total_num_nodes'] = total_nodes.astype(int) # total number of nodes in the network         
-    # hierarchy['num_row_col'] = np.sqrt(total_nodes).astype(int) # number of rows and columns in the square network    
-    
+        for jj in range(h['num_levels_hier']-1):
+                        
+            indices_arrays__inter[ii].append( np.delete(indices_arrays__intra[ii][jj+1], np.where( np.in1d(indices_arrays__intra[ii][jj+1],indices_arrays__intra[ii][jj]) )[0] ) )
+
     indices_arrays = dict()
     indices_arrays['intra'] = indices_arrays__intra
-    # indices_arrays['inter'] = indices_arrays__intra
-    indices_arrays['module_max_min_coords__start_corner'] = module_max_min_coords__start_corner # at each level of hierarcy, for each module, this array gives x-y coordinate ranges in the form [level_of_hierarchy][module_number][[xmin,xmax],[ymin,ymax]]
-    # indices_arrays['index_remapping__from_degree_to_corner'] = index_remapping__from_degree_to_corner
+    indices_arrays['inter'] = indices_arrays__inter
+    indices_arrays['map_array'] = map_array
+    # indices_arrays['module_max_min_coords__start_corner'] = module_max_min_coords__start_corner # at each level of hierarcy, for each module, this array gives x-y coordinate ranges in the form [level_of_hierarchy][module_number][[xmin,xmax],[ymin,ymax]]
     
-    return indices_arrays
+    return indices_arrays, h
+
+
+def neuron_level_rentian_scaling__with_spatial_dependence(h,i_a,s_i,o_d_d,r_e):
+    
+    A = np.zeros([h['total_num_nodes'],h['total_num_nodes']])
+    
+    rent = dict()
+    rent['exponent'] = r_e
+    rent['Q_h'] = h['inter_modular_nodes'][0:-1]
+    
+    _tn = 0
+    for ii in range(len(h['h_vec'])-1):
+        _tn += rent['Q_h'][ii]*h['h_vec'][ii]**(-r_e)                
+    rent['norm_factor'] = _tn
+    # print(rent['norm_factor'])
+    
+    k_out_h__prefactor = np.zeros([h['num_levels_hier']])
+    for ii in range(len(h['h_vec'])-1):
+        k_out_h__prefactor[ii] = rent['Q_h'][ii]*h['h_vec'][ii]**(-r_e)/rent['norm_factor']   
+    
+    o_d_d['node_degrees_vs_h'] = np.zeros([h['total_num_nodes'],h['num_levels_hier']-1])    
+    for ii in range(h['total_num_nodes']):
+        for jj in range(h['num_levels_hier']-1):
+            o_d_d['node_degrees_vs_h'][ii,jj] = np.round( o_d_d['node_degrees'][ii]*k_out_h__prefactor[jj] ).astype(int)
+            
+    
+    return A, rent, o_d_d
 
 
 #%% scraps

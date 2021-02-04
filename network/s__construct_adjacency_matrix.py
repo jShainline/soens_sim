@@ -2,7 +2,7 @@ import numpy as np
 import networkx as nx
 from matplotlib import pyplot as plt
 
-from _functions_network import populate_hierarchy__power_law, populate_hierarchy__geometrical, generate_degree_distribution, generate_spatial_structure, determine_indices
+from _functions_network import populate_hierarchy__power_law, populate_hierarchy__geometrical, generate_out_degree_distribution, generate_spatial_structure, determine_indices, neuron_level_rentian_scaling__with_spatial_dependence
 from _plotting_network import plot_hierarchy__power_law, plot_hierarchy__geometrical, plot_out_degree_distribution, plot_node_degree_vs_space
 
 plt.close('all')
@@ -20,15 +20,16 @@ print('constructing network hierarchy ... ')
 
 # power-law hierarchy ( number of modules at level h of hierarchy: M_h = n_0 * h**(-gamma) )
 num_levels_hier = 3
-num_nodes_0 = 7**2
+num_row_col_0 = 7
 gamma = 2
-# hierarchy = populate_hierarchy__power_law(num_nodes_0,num_levels_hier,float(gamma))
+# hierarchy = populate_hierarchy__power_law(num_row_col_0**2,num_levels_hier,float(gamma))
 # plot_hierarchy__power_law(hierarchy)
 
 # geometrical hierarchy
 num_levels_hier = 4
-sqrt_num_nodes_0 = 7
-hierarchy = populate_hierarchy__geometrical(sqrt_num_nodes_0,num_levels_hier)
+num_row_col_0 = 7
+delta_num_row_col = 2
+hierarchy = populate_hierarchy__geometrical(num_row_col_0,delta_num_row_col,num_levels_hier)
 plot_hierarchy__geometrical(hierarchy)
 
 #%% generate out-degree distribution
@@ -41,16 +42,16 @@ degree_distribution__functional_form = 'gaussian' # 'gaussian' or 'power_law'
 if degree_distribution__functional_form == 'gaussian':
     
     # gaussian degree params
-    center = 40 # mean of gaussian distribution
+    center = 100 # mean of gaussian distribution
     st_dev = 5 # standard deviation of gaussian distribution    
-    out_degree_distribution = generate_degree_distribution(degree_distribution__functional_form, center = center, st_dev = st_dev, num_nodes = hierarchy['total_num_nodes'])
+    out_degree_distribution = generate_out_degree_distribution(degree_distribution__functional_form, center = center, st_dev = st_dev, num_nodes = hierarchy['total_num_nodes'])
     
 elif degree_distribution__functional_form == 'power_law':
     
     # power-law degree params
     k_out_min = 2 # minimum degree allowed
     alpha = 2 # exponent, p(k) ~ k**(-alpha)
-    out_degree_distribution = generate_degree_distribution(degree_distribution__functional_form, k_out_min = k_out_min, alpha = alpha, num_nodes = hierarchy['total_num_nodes'])
+    out_degree_distribution = generate_out_degree_distribution(degree_distribution__functional_form, k_out_min = k_out_min, alpha = alpha, num_nodes = hierarchy['total_num_nodes'])
     
 num_bins = 10    
 plot_out_degree_distribution(out_degree_distribution,num_bins)
@@ -76,13 +77,17 @@ plot_node_degree_vs_space(hierarchy,spatial_information)
 
 #%% find indices of nodes within and external to each module at each level of hierarchy
 
-indices_arrays = determine_indices(hierarchy,spatial_information)
+print('finding intra- and inter-modular indices ... ')
 
-# #%% establish corner-referred indexing
+indices_arrays, hierarchy = determine_indices(hierarchy,spatial_information)
 
-# index__corner_referred = np.zeros([total_nodes])
 
-# for ii in range(total_nodes):
+#%% make connections
+
+print('assigning edges based on neuron-level rent''s rule with spatial dependence ... ')
+
+rentian_exponent = 2.
+A, rent, out_degree_distribution = neuron_level_rentian_scaling__with_spatial_dependence(hierarchy,indices_arrays,spatial_information,out_degree_distribution,rentian_exponent)
 
 
 
