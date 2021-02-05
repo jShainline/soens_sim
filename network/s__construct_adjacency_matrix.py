@@ -3,7 +3,7 @@ import networkx as nx
 from matplotlib import pyplot as plt
 
 from _functions_network import populate_hierarchy__power_law, populate_hierarchy__geometrical, generate_out_degree_distribution, generate_spatial_structure, determine_indices, neuron_level_rentian_scaling__with_spatial_dependence
-from _plotting_network import plot_hierarchy__power_law, plot_hierarchy__geometrical, plot_out_degree_distribution, plot_node_degree_vs_space
+from _plotting_network import plot_hierarchy__power_law, plot_hierarchy__geometrical, plot_out_degree_distribution, plot_node_degree_vs_space, plot_distance_matrix
 
 plt.close('all')
 
@@ -26,8 +26,8 @@ gamma = 2
 # plot_hierarchy__power_law(hierarchy)
 
 # geometrical hierarchy
-num_levels_hier = 4
-num_row_col_0 = 7
+num_levels_hier = 3
+num_row_col_0 = 5
 delta_num_row_col = 2
 hierarchy = populate_hierarchy__geometrical(num_row_col_0,delta_num_row_col,num_levels_hier)
 plot_hierarchy__geometrical(hierarchy)
@@ -42,7 +42,7 @@ degree_distribution__functional_form = 'gaussian' # 'gaussian' or 'power_law'
 if degree_distribution__functional_form == 'gaussian':
     
     # gaussian degree params
-    center = 100 # mean of gaussian distribution
+    center = 40 # mean of gaussian distribution
     st_dev = 5 # standard deviation of gaussian distribution    
     out_degree_distribution = generate_out_degree_distribution(degree_distribution__functional_form, center = center, st_dev = st_dev, num_nodes = hierarchy['total_num_nodes'])
     
@@ -73,7 +73,8 @@ print('assigning spatial coordinates ... ')
 spatial_information = generate_spatial_structure(hierarchy,out_degree_distribution)
     
 plot_node_degree_vs_space(hierarchy,spatial_information)    
-    
+plot_distance_matrix(spatial_information['distance_mat'],hierarchy['total_num_nodes'])
+plot_distance_matrix(spatial_information['distance_mat__corner'],hierarchy['total_num_nodes'])
 
 #%% find indices of nodes within and external to each module at each level of hierarchy
 
@@ -86,7 +87,10 @@ indices_arrays, hierarchy = determine_indices(hierarchy,spatial_information)
 
 print('assigning edges based on neuron-level rent''s rule with spatial dependence ... ')
 
-rentian_exponent = 2.
+rentian_exponent = 1.2
+
+spatial_information['spatial_dependence'] = 'exponential' # 'exponential' or 'power_law'
+spatial_information['exponential_decay_factor'] = 3 # P_h(r_k = r) = A exp( -r/r_h ) where r_h = edf*nnrc_h where edf is the exponential_decay_factor set here and nnrc_h is hierarchy['num_nodes_row_col'][h], the length of a module in lattice constants at this level of hierarchy
 A, rent, out_degree_distribution = neuron_level_rentian_scaling__with_spatial_dependence(hierarchy,indices_arrays,spatial_information,out_degree_distribution,rentian_exponent)
 
 

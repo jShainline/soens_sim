@@ -182,6 +182,31 @@ def plot_node_degree_vs_space(hierarchy,spatial_information):
     
     return
 
+def plot_distance_matrix(distance_mat,num_nodes):
+    
+    fig, ax = plt.subplots(1,1)
+    error = ax.imshow(np.transpose(distance_mat[:,:]), cmap = plt.cm.viridis, interpolation='none', extent=[0,num_nodes-1,0,num_nodes-1], aspect = 'auto', origin = 'lower')
+    cbar = fig.colorbar(error, extend='both')
+    cbar.minorticks_on()     
+    fig.suptitle('R_mat')
+    ax.set_xlabel(r'node index 1')
+    ax.set_ylabel(r'node index 2')   
+    plt.show()
+    
+    return
+
+# def plot_node_coords(node_coords,num_nodes):
+    
+#     fig, ax = plt.subplots(1,1)
+#     error = ax.imshow(np.transpose(node_coords[:]), cmap = plt.cm.viridis, interpolation='none', extent=[0,num_nodes-1,0,num_nodes-1], aspect = 'auto', origin = 'lower')
+#     cbar = fig.colorbar(error, extend='both')
+#     cbar.minorticks_on()     
+#     fig.suptitle('R_mat')
+#     ax.set_xlabel(r'node index 1')
+#     ax.set_ylabel(r'node index 2')   
+#     plt.show()
+    
+#     return
 
 def plot_A(A):
 
