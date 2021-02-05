@@ -219,44 +219,91 @@ def generate_spatial_structure(hierarchy,out_degree_distribution):
     for ii in range(num_nodes_per_module):
         for jj in range(num_modules_level_1):
             node_coords.append( [ tn*ta1[jj][0]+ta2[ii][0] , tn*ta1[jj][1]+ta2[ii][1]  ] ) 
-             
-    total_num_nodes = hierarchy['total_num_nodes']
-    num_row_col__nodes = hierarchy['num_row_col']
             
+             
+    tnn = hierarchy['total_num_nodes']
+    nlh = hierarchy['num_levels_hier']
+    num_row_col__nodes = hierarchy['num_row_col']
+    map_to_upper = []
+    for ii_sub in range(tnn):
+        map_to_upper.append([])
+        
+        x_sub = node_coords[ii_sub][0]
+        y_sub = node_coords[ii_sub][1]
+        for jj in range(nlh-1):
+            nnrc_sub = hierarchy['num_nodes_row_col'][jj+1]
+            nmrc_sup = np.prod(hierarchy['num_modules_row_col'][jj+1:-1])
+            x_sup = np.floor(x_sub/nnrc_sub)
+            y_sup = np.floor(y_sub/nnrc_sub)
+            ii_sup = nmrc_sup*x_sup+y_sup
+            map_to_upper[ii_sub].append(ii_sup)
+            
+    intra_modular_indices = []   
+    # num_modules_list__with_level_0 = np.insert(copy.deepcopy(hierarchy['num_modules_list']),0,tnn)
+    # print('num_modules_list__with_level_0 = {}'.format(num_modules_list__with_level_0))
+    for ii in range(nlh-1):
+        intra_modular_indices.append([])
+        
+        nnrc_sub = hierarchy['num_nodes_row_col'][ii+1]
+        nmrc_sup = np.prod(hierarchy['num_modules_row_col'][ii+1:-1])
+        
+        # for jj in range(num_modules_list__with_level_0):
+        for jj in range(np.prod(hierarchy['num_modules_list'][ii+1:-1])):
+            
+            x_sup = np.floor(jj/nmrc_sup)
+            y_sup = jj-nmrc_sup*x_sup
+            xind_1 = x_sup*nnrc_sub
+            xind_2 = xind_1+nnrc_sub
+            yind_1 = y_sup*nnrc_sub
+            yind_2 = yind_1+nnrc_sub
+            
+            # print('xind_1 = {}, xind_2 = {}, yind_1 = {}, yind_2 = {}'.format(xind_1,xind_2,yind_1,yind_2))
+            
+            xvec = np.arange(xind_1,xind_2,1)
+            yvec = np.arange(yind_1,yind_2,1)
+            # temp_vec = np.zeros([( (xind_2-xind_1)*(yind_2-yind_1) ).astype(int)])
+            temp_vec = []
+            for pp in range(len(xvec)):
+                for qq in range(len(yvec)):
+                    # temp_vec[pp*len(yvec)+qq] = nnrc_sub*xvec[pp]+yvec[qq]
+                    temp_vec.append(num_row_col__nodes*xvec[pp]+yvec[qq])
+            
+            intra_modular_indices[ii].append(temp_vec)
+                        
     # print(np.shape(node_coords))
     degree_xy = np.zeros([num_row_col__nodes,num_row_col__nodes])
-    for ii in range(total_num_nodes):
+    for ii in range(tnn):
         # print('mm_ii = {}, nn_ii = {}'.format(mm_ii,nn_ii))
         degree_xy[node_coords[ii][0].astype(int),node_coords[ii][1].astype(int)] = out_degree_distribution['node_degrees'][ii]
                         
-    print(node_coords[0])
-    index_remapping__from_corner_to_degree = np.zeros([total_num_nodes])
-    for ii in range(total_num_nodes):
+    # print(node_coords[0])
+    index_remapping__from_corner_to_degree = np.zeros([tnn])
+    for ii in range(tnn):
         index_remapping__from_corner_to_degree[ii] = num_row_col__nodes*node_coords[ii][0]+node_coords[ii][1]
         
     index_remapping__from_degree_to_corner = np.argsort(index_remapping__from_corner_to_degree)
     
     # generate distance matrix
 
-    print('generating distance matrix ... ')
+    # print('generating distance matrix ... ')
     
-    distance_mat = np.zeros([total_num_nodes,total_num_nodes])
-    node_coords__corner = []
-    for ii in range(total_num_nodes):
-        # print('ii = {} of {} (num_nodes)'.format(ii+1,total_num_nodes))
-        mm = np.floor(ii/hierarchy['num_nodes_row_col'][-1])
-        node_coords__corner.append( [mm,ii-hierarchy['num_nodes_row_col'][-1]*mm] )
+    # distance_mat = np.zeros([tnn,tnn])
+    # node_coords__corner = []
+    # for ii in range(tnn):
+    #     # print('ii = {} of {} (num_nodes)'.format(ii+1,total_num_nodes))
+    #     mm = np.floor(ii/hierarchy['num_nodes_row_col'][-1])
+    #     node_coords__corner.append( [mm,ii-hierarchy['num_nodes_row_col'][-1]*mm] )
         
-        for jj in range(total_num_nodes):
-            distance_mat[ii,jj] = np.abs(node_coords[ii][0]-node_coords[jj][0])+np.abs(node_coords[ii][1]-node_coords[jj][1]) # manhattan distance
-            # distance_mat[ii,jj] = ( (mm_ii[ii]-mm_ii[jj])**2 + (nn_ii[ii]-nn_ii[jj])**2 )**(1/2) # euclidean distance            
+    #     for jj in range(tnn):
+    #         distance_mat[ii,jj] = np.abs(node_coords[ii][0]-node_coords[jj][0])+np.abs(node_coords[ii][1]-node_coords[jj][1]) # manhattan distance
+    #         # distance_mat[ii,jj] = ( (mm_ii[ii]-mm_ii[jj])**2 + (nn_ii[ii]-nn_ii[jj])**2 )**(1/2) # euclidean distance            
             
-    distance_mat__corner = np.zeros([total_num_nodes,total_num_nodes])
-    for ii in range(total_num_nodes):
-        # print('ii = {} of {} (num_nodes)'.format(ii+1,total_num_nodes))
-        for jj in range(total_num_nodes):
-            # distance_mat__corner[ii,jj] = np.abs(node_coords__corner[ii][0]-node_coords__corner[jj][0])+np.abs(node_coords__corner[ii][1]-node_coords__corner[jj][1]) # manhattan distance
-            distance_mat__corner[ii,jj] = distance_mat[index_remapping__from_degree_to_corner[ii].astype(int),index_remapping__from_degree_to_corner[jj].astype(int)]
+    # distance_mat__corner = np.zeros([tnn,tnn])
+    # for ii in range(tnn):
+    #     # print('ii = {} of {} (num_nodes)'.format(ii+1,total_num_nodes))
+    #     for jj in range(tnn):
+    #         # distance_mat__corner[ii,jj] = np.abs(node_coords__corner[ii][0]-node_coords__corner[jj][0])+np.abs(node_coords__corner[ii][1]-node_coords__corner[jj][1]) # manhattan distance
+    #         distance_mat__corner[ii,jj] = distance_mat[index_remapping__from_degree_to_corner[ii].astype(int),index_remapping__from_degree_to_corner[jj].astype(int)]
 
     spatial_information = dict()
     # spatial_information['module_index__start_corner'] = module_index__start_corner
@@ -264,8 +311,10 @@ def generate_spatial_structure(hierarchy,out_degree_distribution):
     # spatial_information['module_coords__start_center'] = module_coords__start_center
     spatial_information['node_coords'] = node_coords
     spatial_information['degree_xy'] = degree_xy
-    spatial_information['distance_mat'] = distance_mat
-    spatial_information['distance_mat__corner'] = distance_mat__corner
+    # spatial_information['distance_mat'] = distance_mat
+    # spatial_information['distance_mat__corner'] = distance_mat__corner
+    spatial_information['map_to_upper'] = map_to_upper
+    spatial_information['intra_modular_indices'] = intra_modular_indices
     spatial_information['index_remapping__from_degree_to_corner'] = index_remapping__from_degree_to_corner.astype(int)
     spatial_information['index_remapping__from_corner_to_degree'] = index_remapping__from_corner_to_degree.astype(int)
     
@@ -331,7 +380,7 @@ def determine_indices(h,si):
     return indices_arrays, h
 
 
-def neuron_level_rentian_scaling__with_spatial_dependence(h,i_a,s_i,o_d_d,r_e):
+def neuron_level_rentian_scaling__with_spatial_dependence(h,s_i,o_d_d,r_e):
         
     rent = dict()
     rent['exponent'] = r_e
@@ -350,45 +399,28 @@ def neuron_level_rentian_scaling__with_spatial_dependence(h,i_a,s_i,o_d_d,r_e):
 
     # assign connections at each level of hierarchy with specified spatial profile
     A = np.zeros([h['total_num_nodes'],h['total_num_nodes']])    
-    if s_i['spatial_dependence'] == 'exponential': # P_h(r_k = r) = A exp( -r/r_h ) where r_h = edf*nnrc_h where edf is the exponential_decay_factor set here and nnrc_h is hierarchy['num_nodes_row_col'][h], the length of a module in lattice constants at this level of hierarchy
-        
-        edf = s_i['exponential_decay_factor']
-        for ii in range(h['total_num_nodes']):
-            print('ii = {} of {} (num_nodes)'.format(ii+1,h['total_num_nodes']))
-            
-            for jj in range(h['num_levels_hier']-1):
-                
-                r_h = edf*h['num_nodes_row_col'][jj]
-                
-                counter = 0
-                nodes_placed = 0
-                while nodes_placed < o_d_d['node_degrees_vs_h'][ii,jj] and counter < 3*o_d_d['node_degrees_vs_h'][ii,jj]:
-                    
-                    r_k = np.random.exponential(r_h)
-                    # print('r_h = {}, r_k = {}'.format(r_h,r_k))
-                    # print('s_i[''distance_mat''][ii,i_a[''inter''][ii][jj]] = {}'.format(s_i['distance_mat'][ii,i_a['inter'][ii][jj]]))
-                    candidate_indices = np.nonzero( s_i['distance_mat'][ii,i_a['inter'][ii][jj]] > r_k-1 ) #  & s_i['distance_mat'][ii,i_a['inter'][ii][jj]] > r_k+1
-                    # print(candidate_indices)
-                    
-                    probe = 0
-                    increment = 0
-                    if len(candidate_indices) > 0:
-                        while probe == 0:
-                            if A[ii,i_a['inter'][ii][jj][increment]] == 0:
-                                A[ii,i_a['inter'][ii][jj][increment]] = 1
-                                probe = 1
-                                nodes_placed += 1
-                            elif A[ii,i_a['inter'][ii][jj][increment]] != 0:
-                                increment += 1
-                            if increment == len(candidate_indices):
-                                probe = 1                            
-                                if len( np.where( A[ii,i_a['inter'][ii][jj]] == 0 ) ) > 0:
-                                    A[ii,np.where( A[ii,i_a['inter'][ii][jj]] == 0)[0]] = 1
-                                    nodes_placed += 1
-                                    
-                    counter += 1
-
     
+    print('constructing adjacency matrix ...')
+    for ii in range(h['total_num_nodes']):
+        # print('ii = {} of {}'.format(ii+1,h['total_num_nodes']))
+        
+        pp = s_i['index_remapping__from_corner_to_degree'][ii].astype(int)
+        # print('ii = {} of {}; pp = {}'.format(ii,h['total_num_nodes'],pp))
+        
+            
+        for jj in range(h['num_levels_hier']-1):
+                
+            module_index = s_i['map_to_upper'][ii][jj]
+            # print('jj = {}; module_index = {}'.format(jj,module_index))
+            candidate_indices = s_i['intra_modular_indices'][jj][module_index.astype(int)]
+            
+            samples = np.random.randint(0,len(candidate_indices),o_d_d['node_degrees_vs_h'][ii,jj].astype(int))
+            # print('samples = {}'.format(samples))
+            # print('candidate_indices[samples] = {}'.format(candidate_indices[samples]))
+            
+            for kk in range(len(samples)):
+                A[pp,candidate_indices[samples[kk]].astype(int)] = 1
+
     return A, rent, o_d_d
 
 
