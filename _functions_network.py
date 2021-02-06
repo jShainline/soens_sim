@@ -1,8 +1,13 @@
 import numpy as np
+import matplotlib.cm as cm
+import matplotlib.pyplot as plt
 import copy
 # from matplotlib import pyplot as plt
 import powerlaw
 import networkx as nx
+import igraph as ig
+# from networkx.algorithms import community
+import community as community_louvain
 
 from _util import color_dictionary # physical_constants
 colors = color_dictionary()
@@ -426,31 +431,95 @@ def neuron_level_rentian_scaling__with_spatial_dependence(h,s_i,o_d_d,r_e):
 
 def graph_analysis(A):
     
+    print('initializing networkx object ...')
     G = nx.from_numpy_matrix(A, create_using=nx.DiGraph())
+    tot_num_nodes = G.number_of_nodes()
+        
+    print('calculating average shortest path length ...')
+    spl = nx.average_shortest_path_length(G) # networkx calculation of the average shortest path length. # nx.average_shortest_path_length(G[, weight])     
     
-    # average_shortest_path_length(G[, weight]) Return the average shortest path length.
-    # G.in_degree()
-    # G.out_degree()
-    # nx.clustering(G)
+    print('analyzing node degrees ...')
+    in_degree = G.in_degree()
+    out_degree = G.out_degree()
     
-    # function [cc] = f_clusteringCoefficient(A)
+    in_degree_vec = np.zeros([tot_num_nodes])
+    out_degree_vec = np.zeros([tot_num_nodes])
+    
+    tot_in_degree = 0
+    tot_out_degree = 0
+    
+    for ii in range(tot_num_nodes):
+        
+        in_degree_vec[ii] = in_degree[ii]
+        tot_in_degree += in_degree_vec[ii]
+        
+        out_degree_vec[ii] = out_degree[ii]
+        tot_out_degree += out_degree[ii]
+        
+    if tot_in_degree != tot_out_degree:
+        raise ValueError('[_functions_network/graph_analysis] The total in-degree of the graph does not equal the total out-degree')
+    avg_in_degree = tot_in_degree/tot_num_nodes        
+    avg_out_degree = tot_out_degree/tot_num_nodes
+    
+    standard_deviation_in_degree = np.sqrt( np.sum( (in_degree_vec - avg_in_degree)**2 )/tot_num_nodes )
+    standard_deviation_out_degree = np.sqrt( np.sum( (out_degree_vec - avg_out_degree)**2 )/tot_num_nodes )
+    
+    print('generating random graph for comparison ...')
+    G__rand = nx.fast_gnp_random_graph(tot_num_nodes, tot_out_degree/(tot_num_nodes*(tot_num_nodes-1)), seed = None, directed = True) 
+    
+    print('calculating random graph shortest path length ...')
+    spl__rand = nx.average_shortest_path_length(G__rand)
+    
+    print('analyzing clustering ...')
+    clustering =  nx.clustering(G)
+    average_clustering_coefficient =  nx.average_clustering(G)
+    average_clustering_coefficient__rand =  nx.average_clustering(G__rand)
+    
+    print('calculating small-world index ...')
+    swi = (average_clustering_coefficient*spl__rand)/(average_clustering_coefficient__rand*spl)
+    
+    print('calculating modularity matrix ...')
+    B = nx.directed_modularity_matrix(G)
+    
+    g = ig.Graph.Adjacency(A.tolist())
+    communities =  ig.GraphBase.community_infomap(g, edge_weights=None, vertex_weights=None,trials=10)
 
-    # dG = digraph(A);
     
-    # numTriangles_local = diag((A+A')^3);
+    # this throws an error
+    # from networkx.algorithms.community import greedy_modularity_communities
+    # communities = list(greedy_modularity_communities(G))
     
-    # inDeg = indegree(dG);
-    # outDeg = outdegree(dG);
-    # degTot = inDeg+outDeg;
-    # degBiLat = diag(A^2);
-    
-    # clustCoeffVec = numTriangles_local./(2*(degTot.*(degTot-1)-2*degBiLat)); 
-    
-    # cc = mean(clustCoeffVec);
+    # this doesnt works for digraphs
+    # partition  = community_louvain.best_partition(G)
+    # # draw the graph
+    # pos = nx.spring_layout(G)
+    # # color the nodes according to their partition
+    # cmap = cm.get_cmap('viridis', max(partition.values()) + 1)
+    # nx.draw_networkx_nodes(G, pos, partition.keys(), node_size=40, cmap=cmap, node_color=list(partition.values()))
+    # nx.draw_networkx_edges(G, pos, alpha=0.5)
+    # plt.show()
+
     
     
     graph_data = dict()
     graph_data['G'] = G
+    graph_data['B'] = B
+    graph_data['average_shortest_path_length'] = spl
+    graph_data['average_shortest_path_length__random_graph'] = spl__rand
+    graph_data['in_degree'] = in_degree_vec
+    graph_data['out_degree'] = out_degree_vec
+    graph_data['tot_in_degree'] = tot_in_degree
+    graph_data['tot_out_degree'] = tot_out_degree
+    graph_data['avg_in_degree'] = avg_in_degree
+    graph_data['avg_out_degree'] = avg_out_degree
+    graph_data['standard_deviation_in_degree'] = standard_deviation_in_degree
+    graph_data['standard_deviation_out_degree'] = standard_deviation_out_degree
+    graph_data['clustering'] = clustering
+    graph_data['average_clustering_coefficient'] = average_clustering_coefficient
+    graph_data['average_clustering_coefficient__random_graph'] = average_clustering_coefficient__rand
+    graph_data['small_world_index'] = swi
+    graph_data['communities'] = communities
+    
     
     return graph_data
 

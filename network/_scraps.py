@@ -65,3 +65,20 @@ fprintf('\n\nA graph is considered small-world if:\n1. Its average local cluster
 swi = (cc_growth/cc_rand)*(averagePathLength_rand/averagePathLength_growth);
 fprintf('\nDefine small-world index (SWI) as CC/CC_rand * APL_rand/APL \n')
 fprintf('\nSWI = %g \n\n\n',swi)
+
+
+
+    # function [cc] = f_clusteringCoefficient(A)
+
+    # dG = digraph(A);
+    
+    # numTriangles_local = diag((A+A')^3);
+    
+    # inDeg = indegree(dG);
+    # outDeg = outdegree(dG);
+    # degTot = inDeg+outDeg;
+    # degBiLat = diag(A^2);
+    
+    # clustCoeffVec = numTriangles_local./(2*(degTot.*(degTot-1)-2*degBiLat)); 
+    
+    # cc = mean(clustCoeffVec);

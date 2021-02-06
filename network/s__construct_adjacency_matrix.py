@@ -26,8 +26,8 @@ gamma = 2
 # plot_hierarchy__power_law(hierarchy)
 
 # geometrical hierarchy
-num_levels_hier = 4
-num_row_col_0 = 7
+num_levels_hier = 3
+num_row_col_0 = 5
 delta_num_row_col = 2
 hierarchy = populate_hierarchy__geometrical(num_row_col_0,delta_num_row_col,num_levels_hier)
 plot_hierarchy__geometrical(hierarchy)
@@ -98,10 +98,9 @@ plot_A(A)
 
 #%% analyze graph
 
+print('analyzing graph ... ')
 graph_data = graph_analysis(A)
 G = graph_data['G']
-
-
 
 
 #%% make connections
