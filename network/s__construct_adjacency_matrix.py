@@ -2,7 +2,7 @@ import numpy as np
 import networkx as nx
 from matplotlib import pyplot as plt
 
-from _functions_network import populate_hierarchy__power_law, populate_hierarchy__geometrical, generate_out_degree_distribution, generate_spatial_structure, determine_indices, neuron_level_rentian_scaling__with_spatial_dependence
+from _functions_network import populate_hierarchy__power_law, populate_hierarchy__geometrical, generate_out_degree_distribution, generate_spatial_structure, determine_indices, neuron_level_rentian_scaling__with_spatial_dependence, graph_analysis
 from _plotting_network import plot_hierarchy__power_law, plot_hierarchy__geometrical, plot_out_degree_distribution, plot_node_degree_vs_space, plot_distance_matrix, plot_A
 
 plt.close('all')
@@ -95,6 +95,11 @@ spatial_information['exponential_decay_factor'] = 3 # P_h(r_k = r) = A exp( -r/r
 A, rent, out_degree_distribution = neuron_level_rentian_scaling__with_spatial_dependence(hierarchy,spatial_information,out_degree_distribution,rentian_exponent)
 
 plot_A(A)
+
+#%% analyze graph
+
+graph_data = graph_analysis(A)
+G = graph_data['G']
 
 
 

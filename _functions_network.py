@@ -2,6 +2,7 @@ import numpy as np
 import copy
 # from matplotlib import pyplot as plt
 import powerlaw
+import networkx as nx
 
 from _util import color_dictionary # physical_constants
 colors = color_dictionary()
@@ -422,6 +423,36 @@ def neuron_level_rentian_scaling__with_spatial_dependence(h,s_i,o_d_d,r_e):
                 A[pp,candidate_indices[samples[kk]].astype(int)] = 1
 
     return A, rent, o_d_d
+
+def graph_analysis(A):
+    
+    G = nx.from_numpy_matrix(A, create_using=nx.DiGraph())
+    
+    # average_shortest_path_length(G[, weight]) Return the average shortest path length.
+    # G.in_degree()
+    # G.out_degree()
+    # nx.clustering(G)
+    
+    # function [cc] = f_clusteringCoefficient(A)
+
+    # dG = digraph(A);
+    
+    # numTriangles_local = diag((A+A')^3);
+    
+    # inDeg = indegree(dG);
+    # outDeg = outdegree(dG);
+    # degTot = inDeg+outDeg;
+    # degBiLat = diag(A^2);
+    
+    # clustCoeffVec = numTriangles_local./(2*(degTot.*(degTot-1)-2*degBiLat)); 
+    
+    # cc = mean(clustCoeffVec);
+    
+    
+    graph_data = dict()
+    graph_data['G'] = G
+    
+    return graph_data
 
 
 #%% scraps
