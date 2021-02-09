@@ -2,8 +2,8 @@ import numpy as np
 import networkx as nx
 from matplotlib import pyplot as plt
 
-from _functions_network import populate_hierarchy__power_law, populate_hierarchy__geometrical, generate_out_degree_distribution, generate_spatial_structure, determine_indices, neuron_level_rentian_scaling__with_spatial_dependence, graph_analysis
-from _plotting_network import plot_hierarchy__power_law, plot_hierarchy__geometrical, plot_out_degree_distribution, plot_node_degree_vs_space, plot_distance_matrix, plot_A
+from _functions_network import populate_hierarchy__power_law, populate_hierarchy__geometrical, generate_out_degree_distribution, generate_spatial_structure, determine_indices, neuron_level_rentian_scaling, graph_analysis
+from _plotting_network import plot_hierarchy__power_law, plot_hierarchy__geometrical, plot_out_degree_distribution, plot_node_degree_vs_space, plot_distance_matrix, plot_A, plot_nodes_and_modules, plot_rentian
 
 plt.close('all')
 
@@ -13,6 +13,7 @@ plt.close('all')
     # hierarchy
     # out_degree_distribution
     # spatial_information
+    # graph_data
 
 #%% establish network hierarchy
 
@@ -26,9 +27,9 @@ gamma = 2
 # plot_hierarchy__power_law(hierarchy)
 
 # geometrical hierarchy
-num_levels_hier = 3
+num_levels_hier = 5
 num_row_col_0 = 5
-delta_num_row_col = 2
+delta_num_row_col = 1
 hierarchy = populate_hierarchy__geometrical(num_row_col_0,delta_num_row_col,num_levels_hier)
 plot_hierarchy__geometrical(hierarchy)
 
@@ -42,7 +43,7 @@ degree_distribution__functional_form = 'gaussian' # 'gaussian' or 'power_law'
 if degree_distribution__functional_form == 'gaussian':
     
     # gaussian degree params
-    center = 40 # mean of gaussian distribution
+    center = 20 # mean of gaussian distribution
     st_dev = 5 # standard deviation of gaussian distribution    
     out_degree_distribution = generate_out_degree_distribution(degree_distribution__functional_form, center = center, st_dev = st_dev, num_nodes = hierarchy['total_num_nodes'])
     
@@ -72,7 +73,9 @@ print('assigning spatial coordinates ... ')
 
 spatial_information = generate_spatial_structure(hierarchy,out_degree_distribution)
     
-plot_node_degree_vs_space(hierarchy,spatial_information)    
+plot_nodes_and_modules(hierarchy,spatial_information)
+plot_node_degree_vs_space(hierarchy,spatial_information)  
+
 # plot_distance_matrix(spatial_information['distance_mat'],hierarchy['total_num_nodes'])
 # plot_distance_matrix(spatial_information['distance_mat__corner'],hierarchy['total_num_nodes'])
 
@@ -92,15 +95,17 @@ rentian_exponent = 0.8
 spatial_information['spatial_dependence'] = 'exponential' # 'exponential' or 'power_law'
 spatial_information['exponential_decay_factor'] = 3 # P_h(r_k = r) = A exp( -r/r_h ) where r_h = edf*nnrc_h where edf is the exponential_decay_factor set here and nnrc_h is hierarchy['num_nodes_row_col'][h], the length of a module in lattice constants at this level of hierarchy
 # A, rent, out_degree_distribution = neuron_level_rentian_scaling__with_spatial_dependence(hierarchy,indices_arrays,spatial_information,out_degree_distribution,rentian_exponent)
-A, rent, out_degree_distribution = neuron_level_rentian_scaling__with_spatial_dependence(hierarchy,spatial_information,out_degree_distribution,rentian_exponent)
+A, rent, out_degree_distribution = neuron_level_rentian_scaling(hierarchy,spatial_information,out_degree_distribution,rentian_exponent)
 
 plot_A(A)
 
 #%% analyze graph
 
 print('analyzing graph ... ')
-graph_data = graph_analysis(A)
+graph_data = graph_analysis(A,hierarchy,spatial_information,rent)
 G = graph_data['G']
+
+plot_rentian(graph_data,hierarchy)
 
 
 #%% make connections

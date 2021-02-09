@@ -61,7 +61,7 @@ def plot_hierarchy__geometrical(hierarchy):
     total_nodes = hierarchy['total_num_nodes']
     
     fig, ax = plt.subplots(nrows = 1, ncols = 2, sharex = True, sharey = False)
-    fig.suptitle('Population of network hierarchy, power-law construction\nnum_levels_hier = {:d}, num_nodes_0 = {:d}, num_mod_H = {:d}, \nTotal nodes = {:5.2e}'.format(num_levels_hier,num_nodes_0,num_modules_list[-1].astype(int),total_nodes))
+    fig.suptitle('Population of network hierarchy, geometrical construction\nnum_levels_hier = {:d}, num_nodes_0 = {:d}, num_mod_H = {:d}, \nTotal nodes = {:5.2e}'.format(num_levels_hier,num_nodes_0,num_modules_list[-1].astype(int),total_nodes))
     
     ax[0].plot(h_vec,num_modules_list, '-o', color = colors['blue3'])
     ax[0].set_xlabel(r'Hierarchy Level')
@@ -153,6 +153,32 @@ def plot_out_degree_distribution(out_degree_distribution,num_bins):
     return
 
 
+def plot_nodes_and_modules(h,s_i):
+    
+    
+    
+    fig, ax = plt.subplots(nrows = 1, ncols = 1, sharex = False, sharey = False, figsize=(10,10))
+    
+    for ii in range(len(s_i['node_coords'])):
+        ax.plot(s_i['node_coords'][ii][0],s_i['node_coords'][ii][1], 'o', color = colors['black'], markersize = 2)
+        
+    face_color_list = ['yellow1','red1','green1','blue1']
+    edge_color_list = ['yellow3','red3','green3','blue3']
+    color_list = ['yellow3','red3','green3','blue3']
+    nlh = h['num_levels_hier']
+    for ii in range(nlh-1):
+        for jj in range(len(s_i['module_coords__x'][nlh-ii-1])):
+            # ax.fill(s_i['module_coords__x'][nlh-ii-1][jj],s_i['module_coords__y'][nlh-ii-1][jj], facecolor = colors[face_color_list[ii]], edgecolor = colors[edge_color_list[ii]], linewidth = 0.25, alpha = 0.5)
+            ax.plot(s_i['module_coords__x'][nlh-ii-1][jj],s_i['module_coords__y'][nlh-ii-1][jj], '-', color = colors[color_list[ii]], linewidth = 0.5)
+    
+     
+    fig.suptitle('Nodes and modules up the hierarchy')
+    ax.set_xlabel(r'x coord')
+    ax.set_ylabel(r'y coord')   
+    plt.show()
+    
+    return
+
 def plot_node_degree_vs_space(hierarchy,spatial_information):
     
     num_row_col__nodes = hierarchy['num_row_col']
@@ -235,6 +261,28 @@ def plot_A(A):
     # ax.set_ylabel(r'{}'.format(y_label))   
     plt.show()      
     # fig.savefig('figures/'+save_str+'__log.png') 
+    
+    return
+
+
+def plot_rentian(graph_data,hierarchy):
+    
+    num_nodes_0 = hierarchy['num_nodes_0']
+    num_levels_hier = hierarchy['num_levels_hier']
+    
+    num_modules_list = hierarchy['num_modules_list']
+    total_nodes = hierarchy['total_num_nodes']
+    
+    fig, ax = plt.subplots(nrows = 1, ncols = 1, sharex = True, sharey = False)
+    fig.suptitle('Most basic rentian analysis\nnum_levels_hier = {:d}, num_nodes_0 = {:d}, num_mod_H = {:d}, \nTotal nodes = {:5.2e}'.format(num_levels_hier,num_nodes_0,num_modules_list[-1].astype(int),total_nodes))
+    
+    ax.loglog(graph_data['num_nodes_per_module__dense'],graph_data['e_h_hp1__dense'], '-', color = colors['red3'], label = 'fit', linewidth = 1.5)
+    ax.loglog(hierarchy['num_nodes_per_module'][0:-1],graph_data['e_h_hp1'], '-o', color = colors['blue3'], label = 'data')
+    ax.set_xlabel(r'Num Nodes within Modular Partition')
+    ax.set_ylabel(r'Edges Emanating from that Partition')
+    ax.legend()
+
+    plt.show()
     
     return
 

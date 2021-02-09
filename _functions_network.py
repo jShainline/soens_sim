@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import copy
+import time
 # from matplotlib import pyplot as plt
 import powerlaw
 import networkx as nx
@@ -236,45 +237,70 @@ def generate_spatial_structure(hierarchy,out_degree_distribution):
         
         x_sub = node_coords[ii_sub][0]
         y_sub = node_coords[ii_sub][1]
-        for jj in range(nlh-1):
-            nnrc_sub = hierarchy['num_nodes_row_col'][jj+1]
-            nmrc_sup = np.prod(hierarchy['num_modules_row_col'][jj+1:-1])
+        # map_to_upper[ii_sub].append(ii_sub)
+        for jj in range(nlh):
+            nnrc_sub = hierarchy['num_nodes_row_col'][jj]
+            nmrc_sup = np.prod(hierarchy['num_modules_row_col'][jj:-1])
             x_sup = np.floor(x_sub/nnrc_sub)
             y_sup = np.floor(y_sub/nnrc_sub)
             ii_sup = nmrc_sup*x_sup+y_sup
-            map_to_upper[ii_sub].append(ii_sup)
+            map_to_upper[ii_sub].append(ii_sup.astype(int))
             
     intra_modular_indices = []   
     # num_modules_list__with_level_0 = np.insert(copy.deepcopy(hierarchy['num_modules_list']),0,tnn)
     # print('num_modules_list__with_level_0 = {}'.format(num_modules_list__with_level_0))
-    for ii in range(nlh-1):
+    module_coords__x = []
+    module_coords__y = []    
+    h_increment = 0.2
+    for ii in range(nlh):
         intra_modular_indices.append([])
+        module_coords__x.append([])
+        module_coords__y.append([])
         
-        nnrc_sub = hierarchy['num_nodes_row_col'][ii+1]
-        nmrc_sup = np.prod(hierarchy['num_modules_row_col'][ii+1:-1])
-        
-        # for jj in range(num_modules_list__with_level_0):
-        for jj in range(np.prod(hierarchy['num_modules_list'][ii+1:-1])):
+        if ii == 0:
+            for jj in range(tnn):
+                intra_modular_indices[ii].append(jj)
+                module_coords__x[ii].append(node_coords[jj][0])
+                module_coords__y[ii].append(node_coords[jj][0])
+        elif ii > 0:
+                
+            nnrc_sub = hierarchy['num_nodes_row_col'][ii]
+            nmrc_sup = np.prod(hierarchy['num_modules_row_col'][ii:])
             
-            x_sup = np.floor(jj/nmrc_sup)
-            y_sup = jj-nmrc_sup*x_sup
-            xind_1 = x_sup*nnrc_sub
-            xind_2 = xind_1+nnrc_sub
-            yind_1 = y_sup*nnrc_sub
-            yind_2 = yind_1+nnrc_sub
+            # for jj in range(num_modules_list__with_level_0):
+            for jj in range(np.prod(hierarchy['num_modules_list'][ii:])):
+                
+                x_sup = np.floor(jj/nmrc_sup)
+                y_sup = jj-nmrc_sup*x_sup
+                xind_1 = x_sup*nnrc_sub
+                xind_2 = xind_1+nnrc_sub
+                yind_1 = y_sup*nnrc_sub
+                yind_2 = yind_1+nnrc_sub
+                
+                # print('xind_1 = {}, xind_2 = {}, yind_1 = {}, yind_2 = {}'.format(xind_1,xind_2,yind_1,yind_2))
+                
+                xvec = np.arange(xind_1,xind_2,1)
+                yvec = np.arange(yind_1,yind_2,1)
+                # temp_vec = np.zeros([( (xind_2-xind_1)*(yind_2-yind_1) ).astype(int)])
+                module_coords__x[ii].append([xind_1-ii*h_increment,xind_2-1+ii*h_increment,xind_2-1+ii*h_increment,xind_1-ii*h_increment,xind_1-ii*h_increment])
+                module_coords__y[ii].append([yind_1-ii*h_increment,yind_1-ii*h_increment,yind_2-1+ii*h_increment,yind_2-1+ii*h_increment,yind_1-ii*h_increment])
+                temp_vec = []
+                for pp in range(len(xvec)):
+                    for qq in range(len(yvec)):
+                        # temp_vec[pp*len(yvec)+qq] = nnrc_sub*xvec[pp]+yvec[qq]
+                        temp_vec.append(num_row_col__nodes*xvec[pp]+yvec[qq])
+                
+                intra_modular_indices[ii].append(temp_vec)
             
-            # print('xind_1 = {}, xind_2 = {}, yind_1 = {}, yind_2 = {}'.format(xind_1,xind_2,yind_1,yind_2))
-            
-            xvec = np.arange(xind_1,xind_2,1)
-            yvec = np.arange(yind_1,yind_2,1)
-            # temp_vec = np.zeros([( (xind_2-xind_1)*(yind_2-yind_1) ).astype(int)])
-            temp_vec = []
-            for pp in range(len(xvec)):
-                for qq in range(len(yvec)):
-                    # temp_vec[pp*len(yvec)+qq] = nnrc_sub*xvec[pp]+yvec[qq]
-                    temp_vec.append(num_row_col__nodes*xvec[pp]+yvec[qq])
-            
-            intra_modular_indices[ii].append(temp_vec)
+    inter_modular_indices = [] 
+    # print('removing nodes from inter_modular_indices ...')
+    # for ii in range(nlh-1):
+    #     inter_modular_indices.append(intra_modular_indices[ii+1]) 
+    #     for jj in range(nlh-1):
+    #         print('ii = {}, jj = {}, map_to_upper[ii][jj] = {}'.format(ii,jj,map_to_upper[ii][jj]))
+    #         index = np.where( inter_modular_indices[jj][map_to_upper[ii][jj]] == ii )
+    #         inter_modular_indices[jj][map_to_upper[ii][jj]] = np.delete(inter_modular_indices[jj][map_to_upper[ii][jj]],index)
+    
                         
     # print(np.shape(node_coords))
     degree_xy = np.zeros([num_row_col__nodes,num_row_col__nodes])
@@ -313,7 +339,8 @@ def generate_spatial_structure(hierarchy,out_degree_distribution):
 
     spatial_information = dict()
     # spatial_information['module_index__start_corner'] = module_index__start_corner
-    # spatial_information['module_coords__start_corner'] = module_coords__start_corner
+    spatial_information['module_coords__x'] = module_coords__x
+    spatial_information['module_coords__y'] = module_coords__y
     # spatial_information['module_coords__start_center'] = module_coords__start_center
     spatial_information['node_coords'] = node_coords
     spatial_information['degree_xy'] = degree_xy
@@ -321,6 +348,7 @@ def generate_spatial_structure(hierarchy,out_degree_distribution):
     # spatial_information['distance_mat__corner'] = distance_mat__corner
     spatial_information['map_to_upper'] = map_to_upper
     spatial_information['intra_modular_indices'] = intra_modular_indices
+    spatial_information['inter_modular_indices'] = inter_modular_indices
     spatial_information['index_remapping__from_degree_to_corner'] = index_remapping__from_degree_to_corner.astype(int)
     spatial_information['index_remapping__from_corner_to_degree'] = index_remapping__from_corner_to_degree.astype(int)
     
@@ -386,7 +414,7 @@ def determine_indices(h,si):
     return indices_arrays, h
 
 
-def neuron_level_rentian_scaling__with_spatial_dependence(h,s_i,o_d_d,r_e):
+def neuron_level_rentian_scaling(h,s_i,o_d_d,r_e):
         
     rent = dict()
     rent['exponent'] = r_e
@@ -412,33 +440,49 @@ def neuron_level_rentian_scaling__with_spatial_dependence(h,s_i,o_d_d,r_e):
         
         pp = s_i['index_remapping__from_corner_to_degree'][ii].astype(int)
         # print('ii = {} of {}; pp = {}'.format(ii,h['total_num_nodes'],pp))
-        
-            
+                    
         for jj in range(h['num_levels_hier']-1):
                 
-            module_index = s_i['map_to_upper'][ii][jj]
+            module_index = s_i['map_to_upper'][ii][jj+1]
             # print('jj = {}; module_index = {}'.format(jj,module_index))
-            candidate_indices = s_i['intra_modular_indices'][jj][module_index.astype(int)]
+            candidate_indices = s_i['intra_modular_indices'][jj+1][module_index]
             
-            samples = np.random.randint(0,len(candidate_indices),o_d_d['node_degrees_vs_h'][ii,jj].astype(int))
+            # samples = np.random.randint(0,len(np.asarray(candidate_indices)),o_d_d['node_degrees_vs_h'][ii,jj].astype(int))
             # print('samples = {}'.format(samples))
-            # print('candidate_indices[samples] = {}'.format(candidate_indices[samples]))
+            # print('candidate_indices = {}'.format(candidate_indices))
             
-            for kk in range(len(samples)):
-                A[pp,candidate_indices[samples[kk]].astype(int)] = 1
+            num_nodes_placed = 0
+            while num_nodes_placed < o_d_d['node_degrees_vs_h'][ii,jj]:
+                
+                sub_module_index = s_i['map_to_upper'][ii][jj]
+                non_candidate_indices = s_i['intra_modular_indices'][jj][sub_module_index]
+                # print('non_candidate_indices = {}'.format(non_candidate_indices))
+                
+                sample = np.random.randint(0,len(np.asarray(candidate_indices)),1)[0]
+                
+                if candidate_indices[sample].astype(int) not in np.asarray(non_candidate_indices):
+                    A[pp,candidate_indices[sample].astype(int)] = 1
+                    num_nodes_placed += 1
+                # else:
+                #     print('a node was rejected')
 
     return A, rent, o_d_d
 
-def graph_analysis(A):
+
+def graph_analysis(A,hierarchy,s_i,rent):
     
-    print('initializing networkx object ...')
+    print('performing graph analysis ...')
+    
+    print('  initializing networkx object ...')
     G = nx.from_numpy_matrix(A, create_using=nx.DiGraph())
     tot_num_nodes = G.number_of_nodes()
-        
-    print('calculating average shortest path length ...')
-    spl = nx.average_shortest_path_length(G) # networkx calculation of the average shortest path length. # nx.average_shortest_path_length(G[, weight])     
+            
+    print('  calculating average shortest path length ...')
+    st = time.time()
+    spl = nx.average_shortest_path_length(G) # networkx calculation of the average shortest path length. # nx.average_shortest_path_length(G[, weight]) 
+    print('    that took {:7.2}s'.format(time.time()-st))    
     
-    print('analyzing node degrees ...')
+    print('  analyzing node degrees ...')
     in_degree = G.in_degree()
     out_degree = G.out_degree()
     
@@ -464,21 +508,61 @@ def graph_analysis(A):
     standard_deviation_in_degree = np.sqrt( np.sum( (in_degree_vec - avg_in_degree)**2 )/tot_num_nodes )
     standard_deviation_out_degree = np.sqrt( np.sum( (out_degree_vec - avg_out_degree)**2 )/tot_num_nodes )
     
-    print('generating random graph for comparison ...')
+    print('  generating random graph for comparison ...')
     G__rand = nx.fast_gnp_random_graph(tot_num_nodes, tot_out_degree/(tot_num_nodes*(tot_num_nodes-1)), seed = None, directed = True) 
     
-    print('calculating random graph shortest path length ...')
+    print('  calculating random graph shortest path length ...')
+    st = time.time()
     spl__rand = nx.average_shortest_path_length(G__rand)
+    print('    that took {:7.2}s'.format(time.time()-st))
     
-    print('analyzing clustering ...')
-    clustering =  nx.clustering(G)
+    print('  analyzing clustering ...')
+    st = time.time()
+    # clustering =  nx.clustering(G)
     average_clustering_coefficient =  nx.average_clustering(G)
     average_clustering_coefficient__rand =  nx.average_clustering(G__rand)
+    print('    that took {:7.2}s for real network and random combined'.format(time.time()-st))
     
-    print('calculating small-world index ...')
+    print('  calculating small-world index ...')
     swi = (average_clustering_coefficient*spl__rand)/(average_clustering_coefficient__rand*spl)
+    print('    swi = {}'.format(swi))
     
-    print('calculating modularity matrix ...')
+    print('  performing rentian analysis ...')
+    nlh = hierarchy['num_levels_hier']
+    e_h_hp1 = np.zeros([nlh-1])
+    # print('np.shape(e_h_hp1) = {}'.format(np.shape(e_h_hp1)))
+    connections_list = []
+    
+    for ii in range(tot_num_nodes):
+        connections = np.where( A[ii,:] )[0]
+        connections_list.append(connections)
+        
+        for jj in range(len(connections)):
+            
+            h = 0
+            loop_breaker = 0
+            while loop_breaker == 0 and h < nlh:
+                # print('connections[jj] = {}'.format(connections[jj]))
+                # print('np.asarray(s_i[''intra_modular_indices''][h+1][s_i[''map_to_upper''][ii][h]]) = {}'.format(np.asarray(s_i['intra_modular_indices'][h+1][s_i['map_to_upper'][ii][h]])))
+                if connections[jj] in np.asarray(s_i['intra_modular_indices'][h+1][s_i['map_to_upper'][ii][h+1]]):
+                    e_h_hp1[h] += 1
+                    loop_breaker = 1
+                else:
+                    h += 1
+    
+    # print('np.shape(e_h_hp1) = {}'.format(np.shape(e_h_hp1)))
+    
+    #fit to power law
+    
+    num_nodes_per_module__dense = np.linspace(hierarchy['num_nodes_per_module'][0],hierarchy['num_nodes_per_module'][-2],100)
+    
+    e_fit = np.polyfit(np.log10(hierarchy['num_nodes_per_module'][0:-1]),np.log10(e_h_hp1),1)    
+    rentian_prefactor = 10**(e_fit[1])
+    rentian_exponent = e_fit[0]
+    e_h_hp1__dense = rentian_prefactor*num_nodes_per_module__dense**rentian_exponent
+    print('    rent exponent = {:4.2f}, targeting {:4.2f}'.format(rentian_exponent,rent['exponent']))
+        
+    print('  calculating modularity matrix ...')
     B = nx.directed_modularity_matrix(G)
     
     g = ig.Graph.Adjacency(A.tolist())
@@ -514,11 +598,18 @@ def graph_analysis(A):
     graph_data['avg_out_degree'] = avg_out_degree
     graph_data['standard_deviation_in_degree'] = standard_deviation_in_degree
     graph_data['standard_deviation_out_degree'] = standard_deviation_out_degree
-    graph_data['clustering'] = clustering
+    # graph_data['clustering'] = clustering
     graph_data['average_clustering_coefficient'] = average_clustering_coefficient
     graph_data['average_clustering_coefficient__random_graph'] = average_clustering_coefficient__rand
     graph_data['small_world_index'] = swi
     graph_data['communities'] = communities
+    graph_data['connections'] = connections_list
+    graph_data['e_h_hp1'] = e_h_hp1
+    graph_data['num_nodes_per_module__dense'] = num_nodes_per_module__dense
+    graph_data['e_h_hp1__dense'] = e_h_hp1__dense
+    graph_data['rentian_prefactor'] = rentian_prefactor
+    graph_data['rentian_exponent'] = rentian_exponent
+    
     
     
     return graph_data
