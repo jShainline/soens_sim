@@ -111,8 +111,8 @@ def populate_hierarchy__geometrical(num_row_col_0 = 9, delta_num_row_col = 2, nu
     hierarchy['n_h__num_nodes_vs_hierarchy'] = n_h__num_nodes_vs_hierarchy.astype(int) # number of nodes at each level of hierarchy
     hierarchy['num_nodes_per_module'] = num_nodes_per_module.astype(int) # number of nodes per module at each level of hierarchy
     hierarchy['inter_modular_nodes'] = inter_modular_nodes.astype(int) # number of inter-modular nodes at each level of hierarchy
-    hierarchy['total_num_nodes'] = total_nodes.astype(int) # total number of nodes in the network         
-    hierarchy['num_row_col'] = np.sqrt(total_nodes).astype(int) # number of rows and columns in the square network    
+    hierarchy['N_h__total_num_nodes'] = total_nodes.astype(int) # total number of nodes in the network         
+    # hierarchy['num_row_col'] = np.sqrt(total_nodes).astype(int) # number of rows and columns in the square network    
     hierarchy['num_nodes_row_col'] = nnrc
     hierarchy['num_modules_row_col'] = nmrc  
 
@@ -166,22 +166,104 @@ def generate_out_degree_distribution(out_degree_functional_form = 'power-law', *
 
 def generate_spatial_structure(hier,o_d_d):
 
+    spatial_information = dict()
+    
     # assign node coordinates within module
     # num_row_col__nodes__level_1 = np.sqrt(hierarchy['num_modules_list'][0]).astype(int)
     # num_nodes_per_module__level_1 = hierarchy['num_modules_list'][0]
     
+    Nh = hier['N_h__total_num_nodes']
     H = hier['H__num_levels_hier']
-    nmrc = hier['num_modules_row_col']
     Mh = hier['M_h__num_modules_vs_hierarchy']
     nh = hier['n_h__num_nodes_vs_hierarchy']
-
-    # populate these two data structures    
+    nmrc = hier['num_modules_row_col']
+    nnrc = hier['num_nodes_row_col']
+    
+    # first establish modules and available sites for nodes within modules, all corner referenced to bottom left
+    site_coords = []
+    for ii in range(Nh):
+        x = np.floor(ii/nnrc[-1])
+        y = ii - nnrc[-1]*x
+        site_coords.append([x,y])
+        
+        # x_sup = np.floor(jj/nmrc_sup)
+        # y_sup = jj-nmrc_sup*x_sup
+        # xind_1 = x_sup*nnrc_sub
+        # xind_2 = xind_1+nnrc_sub
+        # yind_1 = y_sup*nnrc_sub
+        # yind_2 = yind_1+nnrc_sub
+    
+    spatial_information['site_coords'] = site_coords
+    
     mod_center_coords = []
-    mod_node_coords = []    
+    mod_corner_coords = []
+    mod_index = []
     for h in range(H):
         mod_center_coords.append([])
-        mod_node_coords.append([])
-        for mh in range(len(Mh[h])):
+        mod_corner_coords.append([])
+        for mh in range(np.prod(Mh[h:H-1])):
+            x_mod = np.floor(mh/np.prod(nmrc[h:H-1]))
+            y_mod = mh-np.prod(nmrc[h:H-1])*x_mod
+            delta = np.round( (nnrc[h]-0.1)/2 )
+            mod_center_coords[h].append([x_mod*nnrc[h]+delta,y_mod*nnrc[h]+delta])
+            mod_corner_coords[h].append([x_mod*nnrc[h],y_mod*nnrc[h]])
+            # mod_center_coords[h].append([x_mod*nnrc[h]+delta,y_mod*nnrc[h]+delta])
+            # mod_corner_coords[h].append([x_mod,y_mod])
+            
+    spatial_information['mod_center_coords'] = mod_center_coords 
+    spatial_information['mod_corner_coords'] = mod_corner_coords       
+        
+    
+    # mod_center_coords = []
+    # for h in range(Nh):
+    #     mod_center_coords.append([])
+    #     for mh in range(Mh[H-h-1]):
+            
+    #         # central_node_index = np.round( (np.sqrt(hier['num_modules_list'][0])-1)/2 + 1 )
+    #         mod_center_coords.append([])
+        
+        
+    # num_modules_level_1 = np.prod(hierarchy['num_modules_list'][1:-1])
+    # num_row_col__modules = np.sqrt(num_modules_level_1).astype(int)
+    
+    # module_index__start_corner = np.zeros([num_modules_level_1])
+    # module_coords__start_corner = []
+    # module_coords__start_center = []
+    # for ii in range(num_modules_level_1):
+    #     module_index__start_corner[ii] = ii 
+    #     nn = np.floor(ii/num_row_col__modules)
+    #     module_coords__start_corner.append([ii-num_row_col__modules*nn,nn])
+    
+    # central_module_index = np.round( (np.sqrt(num_modules_level_1)-1)/2 +1 )
+    # central_module_coords = [central_module_index-1,central_module_index-1]
+    # module_coords_list = copy.deepcopy(module_coords__start_corner)
+    # for ii in range(num_modules_level_1):
+        
+    #     distance_list = np.zeros([len(module_coords_list)])
+    #     for jj in range(len(module_coords_list)):
+    #         distance_list[jj] = ( (module_coords_list[jj][0]-central_module_coords[0])**2 + (module_coords_list[jj][1]-central_module_coords[1])**2 )**(1/2) # euclidean distance
+    
+    #     ind = np.argmin( distance_list )
+    #     module_coords__start_center.append( module_coords_list[ind] )
+    #     module_coords_list = np.delete(module_coords_list,ind,0)    
+    
+    # num_row_col__nodes = hier['num_row_col']
+    # map_to_upper = []
+    # for ii_sub in range(Nh):
+        
+    #     map_to_upper.append([])
+        
+    #     x_sub = node_coords[ii_sub][0]
+    #     y_sub = node_coords[ii_sub][1]
+        
+    #     for jj in range(H):
+    #         nnrc_sub = nnrc[jj]
+    #         nmrc_sup = np.prod(nmrc[jj:-1])
+    #         x_sup = np.floor(x_sub/nnrc_sub)
+    #         y_sup = np.floor(y_sub/nnrc_sub)
+    #         ii_sup = nmrc_sup*x_sup+y_sup
+    #         map_to_upper[ii_sub].append(ii_sup.astype(int))
+
         
 
     # for ii in range(nlh):
@@ -205,30 +287,7 @@ def generate_spatial_structure(hier,o_d_d):
     #     intra_module_coords__template.append( coords_list[ind] )
     #     coords_list = np.delete(coords_list,ind,0) 
     
-    # # assign module coordinates relative to bottom left
-    # num_modules_level_1 = np.prod(hierarchy['num_modules_list'][1:-1])
-    # num_row_col__modules = np.sqrt(num_modules_level_1).astype(int)
-    
-    # module_index__start_corner = np.zeros([num_modules_level_1])
-    # module_coords__start_corner = []
-    # module_coords__start_center = []
-    # for ii in range(num_modules_level_1):
-    #     module_index__start_corner[ii] = ii 
-    #     nn = np.floor(ii/num_row_col__modules)
-    #     module_coords__start_corner.append([ii-num_row_col__modules*nn,nn])
-    
-    # central_module_index = np.round( (np.sqrt(num_modules_level_1)-1)/2 +1 )
-    # central_module_coords = [central_module_index-1,central_module_index-1]
-    # module_coords_list = copy.deepcopy(module_coords__start_corner)
-    # for ii in range(num_modules_level_1):
-        
-    #     distance_list = np.zeros([len(module_coords_list)])
-    #     for jj in range(len(module_coords_list)):
-    #         distance_list[jj] = ( (module_coords_list[jj][0]-central_module_coords[0])**2 + (module_coords_list[jj][1]-central_module_coords[1])**2 )**(1/2) # euclidean distance
-    
-    #     ind = np.argmin( distance_list )
-    #     module_coords__start_center.append( module_coords_list[ind] )
-    #     module_coords_list = np.delete(module_coords_list,ind,0)
+
       
     # # go through all modules, assigning nodes in descending order of out degree
     # node_coords = []    
@@ -245,23 +304,7 @@ def generate_spatial_structure(hier,o_d_d):
     #         node_coords.append( [ tn*ta1[jj][0]+ta2[ii][0] , tn*ta1[jj][1]+ta2[ii][1]  ] ) 
             
              
-    # tnn = hierarchy['total_num_nodes']
-    # nlh = hierarchy['num_levels_hier']
-    # num_row_col__nodes = hierarchy['num_row_col']
-    # map_to_upper = []
-    # for ii_sub in range(tnn):
-    #     map_to_upper.append([])
-        
-    #     x_sub = node_coords[ii_sub][0]
-    #     y_sub = node_coords[ii_sub][1]
-    #     # map_to_upper[ii_sub].append(ii_sub)
-    #     for jj in range(nlh):
-    #         nnrc_sub = hierarchy['num_nodes_row_col'][jj]
-    #         nmrc_sup = np.prod(hierarchy['num_modules_row_col'][jj:-1])
-    #         x_sup = np.floor(x_sub/nnrc_sub)
-    #         y_sup = np.floor(y_sub/nnrc_sub)
-    #         ii_sup = nmrc_sup*x_sup+y_sup
-    #         map_to_upper[ii_sub].append(ii_sup.astype(int))
+
             
     # intra_modular_indices = []   
     # # num_modules_list__with_level_0 = np.insert(copy.deepcopy(hierarchy['num_modules_list']),0,tnn)
@@ -354,9 +397,9 @@ def generate_spatial_structure(hier,o_d_d):
     # #         # distance_mat__corner[ii,jj] = np.abs(node_coords__corner[ii][0]-node_coords__corner[jj][0])+np.abs(node_coords__corner[ii][1]-node_coords__corner[jj][1]) # manhattan distance
     # #         distance_mat__corner[ii,jj] = distance_mat[index_remapping__from_degree_to_corner[ii].astype(int),index_remapping__from_degree_to_corner[jj].astype(int)]
 
-    spatial_information = dict()
-    spatial_information['mod_center_coords'] = mod_center_coords
-    spatial_information['mod_node_coords'] = mod_node_coords
+    
+    # spatial_information['mod_center_coords'] = mod_center_coords
+    # spatial_information['mod_node_coords'] = mod_node_coords
     # # spatial_information['module_index__start_corner'] = module_index__start_corner
     # spatial_information['module_coords__x'] = module_coords__x
     # spatial_information['module_coords__y'] = module_coords__y

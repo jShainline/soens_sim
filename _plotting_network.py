@@ -51,14 +51,12 @@ def plot_hierarchy__power_law(hierarchy):
 def plot_hierarchy__geometrical(hierarchy):
     
     num_nodes_0 = hierarchy['num_nodes_0']
-    num_levels_hier = hierarchy['num_levels_hier']
+    num_levels_hier = hierarchy['H__num_levels_hier']
     h_vec = hierarchy['h_vec']
     
-    num_modules_list = hierarchy['num_modules_list']
-    num_nodes_list = hierarchy['num_nodes_list']
+    num_modules_list = hierarchy['M_h__num_modules_vs_hierarchy']
     num_nodes_per_module = hierarchy['num_nodes_per_module']
-    inter_modular_nodes = hierarchy['inter_modular_nodes']
-    total_nodes = hierarchy['total_num_nodes']
+    total_nodes = hierarchy['N_h__total_num_nodes']
     
     fig, ax = plt.subplots(nrows = 1, ncols = 2, sharex = True, sharey = False)
     fig.suptitle('Population of network hierarchy, geometrical construction\nnum_levels_hier = {:d}, num_nodes_0 = {:d}, num_mod_H = {:d}, \nTotal nodes = {:5.2e}'.format(num_levels_hier,num_nodes_0,num_modules_list[-1].astype(int),total_nodes))

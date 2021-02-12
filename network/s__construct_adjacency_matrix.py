@@ -45,7 +45,7 @@ if degree_distribution__functional_form == 'gaussian':
     # gaussian degree params
     center = 20 # mean of gaussian distribution
     st_dev = 5 # standard deviation of gaussian distribution    
-    out_degree_distribution = generate_out_degree_distribution(degree_distribution__functional_form, center = center, st_dev = st_dev, num_nodes = hierarchy['total_num_nodes'])
+    out_degree_distribution = generate_out_degree_distribution(degree_distribution__functional_form, center = center, st_dev = st_dev, num_nodes = hierarchy['N_h__total_num_nodes'])
     
 elif degree_distribution__functional_form == 'power_law':
     
