@@ -54,7 +54,7 @@ def plot_hierarchy__geometrical(hierarchy):
     num_levels_hier = hierarchy['H__num_levels_hier']
     h_vec = hierarchy['h_vec']
     
-    num_modules_list = hierarchy['M_h__num_modules_vs_hierarchy']
+    num_modules_list = hierarchy['M_h__num_submodules_vs_hierarchy']
     num_nodes_per_module = hierarchy['num_nodes_per_module']
     total_nodes = hierarchy['N_h__total_num_nodes']
     
@@ -163,11 +163,11 @@ def plot_nodes_and_modules(h,s_i):
     face_color_list = ['yellow1','red1','green1','blue1']
     edge_color_list = ['yellow3','red3','green3','blue3']
     color_list = ['yellow3','red3','green3','blue3']
-    nlh = h['num_levels_hier']
-    for ii in range(nlh-1):
-        for jj in range(len(s_i['module_coords__x'][nlh-ii-1])):
+    H = h['H__num_levels_hier']
+    for h in range(H-1):
+        for jj in range(len(s_i['mod_coords_x'][H-h-1])):
             # ax.fill(s_i['module_coords__x'][nlh-ii-1][jj],s_i['module_coords__y'][nlh-ii-1][jj], facecolor = colors[face_color_list[ii]], edgecolor = colors[edge_color_list[ii]], linewidth = 0.25, alpha = 0.5)
-            ax.plot(s_i['module_coords__x'][nlh-ii-1][jj],s_i['module_coords__y'][nlh-ii-1][jj], '-', color = colors[color_list[ii]], linewidth = 0.5)
+            ax.plot(s_i['mod_coords_x'][H-h-1][jj],s_i['mod_coords_y'][H-h-1][jj], '-', color = colors[color_list[h]], linewidth = 0.5)
     
      
     fig.suptitle('Nodes and modules up the hierarchy')
@@ -179,7 +179,7 @@ def plot_nodes_and_modules(h,s_i):
 
 def plot_node_degree_vs_space(hierarchy,spatial_information):
     
-    num_row_col__nodes = hierarchy['num_row_col']
+    num_row_col__nodes = hierarchy['num_nodes_row_col'][-1]
     
     # fig, ax = plt.subplots(nrows = 1, ncols = 1, sharex = False, sharey = False)
     # fig.suptitle('x-y positions of nodes')

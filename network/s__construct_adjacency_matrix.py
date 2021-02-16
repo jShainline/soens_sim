@@ -5,6 +5,9 @@ from matplotlib import pyplot as plt
 from _functions_network import populate_hierarchy__power_law, populate_hierarchy__geometrical, generate_out_degree_distribution, generate_spatial_structure, determine_indices, neuron_level_rentian_scaling, graph_analysis
 from _plotting_network import plot_hierarchy__power_law, plot_hierarchy__geometrical, plot_out_degree_distribution, plot_node_degree_vs_space, plot_distance_matrix, plot_A, plot_nodes_and_modules, plot_rentian
 
+from _util import physical_constants
+p = physical_constants()
+
 plt.close('all')
 
 #%%
@@ -27,9 +30,9 @@ gamma = 2
 # plot_hierarchy__power_law(hierarchy)
 
 # geometrical hierarchy
-num_levels_hier = 5
-num_row_col_0 = 5
-delta_num_row_col = 1
+num_levels_hier = 4
+num_row_col_0 = 7
+delta_num_row_col = 2
 hierarchy = populate_hierarchy__geometrical(num_row_col_0,delta_num_row_col,num_levels_hier)
 plot_hierarchy__geometrical(hierarchy)
 

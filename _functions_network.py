@@ -69,43 +69,43 @@ def populate_hierarchy__power_law(num_nodes_0,num_levels_hier,gamma, plot = True
 
 def populate_hierarchy__geometrical(num_row_col_0 = 9, delta_num_row_col = 2, num_levels_hier = 4, plot = True): # power-law hierarchy ( number of modules at level h of hierarchy: M_h = n_0 * h**(-gamma) )
     
-    M_h__num_modules_vs_hierarchy = np.zeros([num_levels_hier])
-    n_h__num_nodes_vs_hierarchy = np.zeros([num_levels_hier])
+    H = num_levels_hier
+    M_h__num_submodules_vs_hierarchy = np.zeros([H])
+    n_h__num_nodes_vs_hierarchy = np.zeros([H])
     # n_h__num_nodes_vs_hierarchy[0] = 1
     
     num_nodes_0 = num_row_col_0**2
     a = delta_num_row_col
     b = num_row_col_0+delta_num_row_col
     
-    h_vec = np.arange(1,num_levels_hier+1,1)
+    h_vec = np.arange(1,H+1,1)
     # print('h_vec = {}'.format(h_vec))
     for h in h_vec:
         # M_h__num_modules_vs_hierarchy[h-1] = np.round( (11 - 2*h)**2 )
-        M_h__num_modules_vs_hierarchy[h-1] = np.round( ( b-a*h )**2 )
+        M_h__num_submodules_vs_hierarchy[h-1] = np.round( ( b-a*h )**2 )
         # print('np.prod( M_h__num_modules_vs_hierarchy[1:h] ) = {}'.format(np.prod( M_h__num_modules_vs_hierarchy[1:h] )))
-        n_h__num_nodes_vs_hierarchy[h-1] = num_nodes_0*np.prod( M_h__num_modules_vs_hierarchy[1:h] )
+        n_h__num_nodes_vs_hierarchy[h-1] = num_nodes_0*np.prod( M_h__num_submodules_vs_hierarchy[1:h] )
     
-    num_nodes_per_module = n_h__num_nodes_vs_hierarchy/M_h__num_modules_vs_hierarchy    
+    num_nodes_per_module = n_h__num_nodes_vs_hierarchy/M_h__num_submodules_vs_hierarchy    
     total_nodes = n_h__num_nodes_vs_hierarchy[-1]
-    inter_modular_nodes = n_h__num_nodes_vs_hierarchy*(1-1/M_h__num_modules_vs_hierarchy)
+    inter_modular_nodes = n_h__num_nodes_vs_hierarchy*(1-1/M_h__num_submodules_vs_hierarchy)
         
-    nnrc = []
-    nmrc = []
-    for ii in range(num_levels_hier):
-        nnrc.append( np.sqrt(num_nodes_per_module[ii]) ) # num nodes in each row/col within a module at the lower level of hierarchy
-        nmrc.append( np.sqrt(M_h__num_modules_vs_hierarchy[ii]) ) # num modules in each row/col at this level of hierarchy
+    nnrc = np.zeros(H,int)
+    nmrc = np.zeros(H,int)
+    mh = np.zeros(H,int)
+    for h in range(H):
+        nnrc[h] = np.sqrt(num_nodes_per_module[h]) # num nodes in each row/col within a module at the lower level of hierarchy
+        nmrc[h] = np.sqrt(M_h__num_submodules_vs_hierarchy[h]) # num modules in each row/col at this level of hierarchy
+        mh[h] = np.prod(M_h__num_submodules_vs_hierarchy[h:H-1])
         
-    # num_sub_modules_list = np.zeros([num_levels_hier-1])
-    # for ii in range(num_levels_hier-1):
-    #     num_sub_modules_list[ii] = M_h__num_modules_vs_hierarchy[ii]/M_h__num_modules_vs_hierarchy[ii+1]
-           
     hierarchy = dict()
     
     hierarchy['num_nodes_0'] = num_nodes_0
     hierarchy['H__num_levels_hier'] = num_levels_hier
     hierarchy['h_vec'] = h_vec
     
-    hierarchy['M_h__num_modules_vs_hierarchy'] = M_h__num_modules_vs_hierarchy.astype(int) # number of modules at each level of hierarchy
+    hierarchy['M_h__num_submodules_vs_hierarchy'] = M_h__num_submodules_vs_hierarchy.astype(int) # number of sub-modules within each module at each level of hierarchy
+    hierarchy['m_h__num_modules_vs_hierarchy'] = mh # number of modules at each level of hierarchy    
     # hierarchy['num_sub_modules_list'] = num_sub_modules_list.astype(int) # number of sub-modules contained in a module at each level of hierarchy above the lowest
     # hierarchy['map_to_upper'] = map_to_upper.astype(int) # index of containing module next level up in hierachy for each level of hierarchy except the highest
     hierarchy['n_h__num_nodes_vs_hierarchy'] = n_h__num_nodes_vs_hierarchy.astype(int) # number of nodes at each level of hierarchy
@@ -172,56 +172,131 @@ def generate_spatial_structure(hier,o_d_d):
     # num_row_col__nodes__level_1 = np.sqrt(hierarchy['num_modules_list'][0]).astype(int)
     # num_nodes_per_module__level_1 = hierarchy['num_modules_list'][0]
     
-    Nh = hier['N_h__total_num_nodes']
     H = hier['H__num_levels_hier']
-    Mh = hier['M_h__num_modules_vs_hierarchy']
+    Nh = hier['N_h__total_num_nodes']
     nh = hier['n_h__num_nodes_vs_hierarchy']
+    Mh = hier['M_h__num_submodules_vs_hierarchy']
+    mh = hier['m_h__num_modules_vs_hierarchy']
     nmrc = hier['num_modules_row_col']
     nnrc = hier['num_nodes_row_col']
-    
-    # first establish modules and available sites for nodes within modules, all corner referenced to bottom left
-    site_coords = []
-    for ii in range(Nh):
-        x = np.floor(ii/nnrc[-1])
-        y = ii - nnrc[-1]*x
-        site_coords.append([x,y])
-        
-        # x_sup = np.floor(jj/nmrc_sup)
-        # y_sup = jj-nmrc_sup*x_sup
-        # xind_1 = x_sup*nnrc_sub
-        # xind_2 = xind_1+nnrc_sub
-        # yind_1 = y_sup*nnrc_sub
-        # yind_2 = yind_1+nnrc_sub
-    
-    spatial_information['site_coords'] = site_coords
-    
+    nnpm = hier['num_nodes_per_module']
+
+    # first establish modules and available sites for nodes within modules, all corner referenced to bottom left   
     mod_center_coords = []
     mod_corner_coords = []
-    mod_index = []
+    mod_coords_x = []
+    mod_coords_y = []
+    h_increment = 0.1
     for h in range(H):
         mod_center_coords.append([])
         mod_corner_coords.append([])
-        for mh in range(np.prod(Mh[h:H-1])):
-            x_mod = np.floor(mh/np.prod(nmrc[h:H-1]))
-            y_mod = mh-np.prod(nmrc[h:H-1])*x_mod
+        mod_coords_x.append([])
+        mod_coords_y.append([])
+        for m in range(mh[h]): # mod_center_coords[0][nn][0]
+            x_mod = np.floor(m/np.prod(nmrc[h:H-1]))
+            y_mod = m-np.prod(nmrc[h:H-1])*x_mod
             delta = np.round( (nnrc[h]-0.1)/2 )
             mod_center_coords[h].append([x_mod*nnrc[h]+delta,y_mod*nnrc[h]+delta])
             mod_corner_coords[h].append([x_mod*nnrc[h],y_mod*nnrc[h]])
-            # mod_center_coords[h].append([x_mod*nnrc[h]+delta,y_mod*nnrc[h]+delta])
-            # mod_corner_coords[h].append([x_mod,y_mod])
+            mod_coords_x[h].append([x_mod*nnrc[h]-h*h_increment,x_mod*nnrc[h]+nnrc[h]-1+h*h_increment,x_mod*nnrc[h]+nnrc[h]-1+h*h_increment,x_mod*nnrc[h]-h*h_increment,x_mod*nnrc[h]-h*h_increment])
+            mod_coords_y[h].append([y_mod*nnrc[h]-h*h_increment,y_mod*nnrc[h]-h*h_increment,y_mod*nnrc[h]+nnrc[h]-1+h*h_increment,y_mod*nnrc[h]+nnrc[h]-1+h*h_increment,y_mod*nnrc[h]-h*h_increment])
+            
             
     spatial_information['mod_center_coords'] = mod_center_coords 
-    spatial_information['mod_corner_coords'] = mod_corner_coords       
-        
+    spatial_information['mod_corner_coords'] = mod_corner_coords 
+    spatial_information['mod_coords_x'] = mod_coords_x 
+    spatial_information['mod_coords_y'] = mod_coords_y 
     
-    # mod_center_coords = []
-    # for h in range(Nh):
-    #     mod_center_coords.append([])
-    #     for mh in range(Mh[H-h-1]):
-            
-    #         # central_node_index = np.round( (np.sqrt(hier['num_modules_list'][0])-1)/2 + 1 )
-    #         mod_center_coords.append([])
+    # find order of modules descending from closest to center at each level of hierarchy
+    module_order = []
+    center = np.sqrt(Nh)/2
+    # print(center)
+    
+    for h in range(H):
+        module_order.append([])
+        distance_list = np.zeros(mh[h])
+        for m in range(mh[h]):
+            distance_list[m] = ( (mod_center_coords[h][m][0] - center)**2 + (mod_center_coords[h][m][1]-center)**2 )**(1/2) # euclidean distance
+        module_order[h] = np.argsort(distance_list)
         
+    spatial_information['module_order'] = module_order
+    
+    # determine intra-module indices and distance from center
+    intra_modular_indices = []   
+    distance_from_center = []
+    # h_increment = 0.2
+    for h in range(H):
+        intra_modular_indices.append([])
+        distance_from_center.append([])
+        
+        for m in range(mh[h]): # step through modules
+            intra_modular_indices[h].append([])
+            distance_from_center[h].append([])
+            temp_vec1 = np.zeros(nnpm[h])
+            temp_vec2 = np.zeros(nnpm[h])
+            for nn in range(nnpm[h]):
+                
+                # print('h = {}; m = {}; mod_corner_coords[h][m] = {}'.format(h,m,mod_corner_coords[h][m]))
+                
+                dx = np.floor(nn/nnrc[h])
+                dy = nn - nnrc[h]*dx
+                x = mod_corner_coords[h][m][0] + dx
+                y = mod_corner_coords[h][m][1] + dy
+                temp_vec1[nn] = nnrc[-1]*x+y
+                temp_vec2[nn] = ( ( mod_center_coords[h][m][0] - x )**2 + ( mod_center_coords[h][m][1] - y )**2 )**(1/2)
+            
+            intra_modular_indices[h][m] = temp_vec1
+            distance_from_center[h][m] = temp_vec2
+            
+    spatial_information['intra_modular_indices'] = intra_modular_indices                
+    spatial_information['distance_from_center'] = distance_from_center                
+                
+    # step through modules, adding one node to unoccupied site closest to center
+    available_sites__distances = copy.deepcopy(distance_from_center)
+    available_sites__indices = copy.deepcopy(intra_modular_indices)
+    h_vec = np.flipud(np.arange(1,H,1))
+    # # print(h_vec)
+    node_coords = []
+    node_indices = []
+    num_nodes_placed = 0
+    while num_nodes_placed <= Nh:
+        for h in h_vec:
+            for m in module_order[h]:
+                
+                if num_nodes_placed < Nh:
+                    
+                    # print('num_nodes_placed = {} of {}'.format(num_nodes_placed,Nh))
+                    
+                    mindex = np.asarray(available_sites__distances[h][m]).argmin()
+                    ii = available_sites__indices[h][m][mindex]
+                    if ii not in node_indices:
+                        
+                        node_indices.append(ii)
+                        x = np.floor(ii/nnrc[-1])
+                        node_coords.append([x,ii-nnrc[-1]*x])
+                        
+                        num_nodes_placed += 1
+                        
+                    available_sites__distances[h][m] = np.delete(available_sites__distances[h][m],mindex)
+                    available_sites__indices[h][m] = np.delete(available_sites__indices[h][m],mindex)
+                    
+                else:
+                    num_nodes_placed += 1
+  
+    spatial_information['node_coords'] = node_coords                
+    spatial_information['node_indices'] = node_indices                
+    
+    degree_xy = np.zeros([nnrc[-1],nnrc[-1]])
+    for ii in range(Nh):
+        # print('mm_ii = {}, nn_ii = {}'.format(mm_ii,nn_ii))
+        degree_xy[node_coords[ii][0].astype(int),node_coords[ii][1].astype(int)] = o_d_d['node_degrees'][ii] # o_d_d['node_degrees'][node_indices[ii].astype(int)]    
+            
+    spatial_information['degree_xy'] = degree_xy   
+        
+    # for h in range(H):
+    #     mod_center_coords.append([])
+    #     mod_corner_coords.append([])
+    #     for mh in range(np.prod(Mh[h:H-1])):
         
     # num_modules_level_1 = np.prod(hierarchy['num_modules_list'][1:-1])
     # num_row_col__modules = np.sqrt(num_modules_level_1).astype(int)
@@ -265,27 +340,6 @@ def generate_spatial_structure(hier,o_d_d):
     #         map_to_upper[ii_sub].append(ii_sup.astype(int))
 
         
-
-    # for ii in range(nlh):
-    #     central_node_index = np.round( (np.sqrt(hier['num_modules_list'][0])-1)/2 + 1 )
-        
-    # coords_list = []
-    # for ii in range(num_row_col__nodes__level_1):
-    #     for jj in range(num_row_col__nodes__level_1):
-    #         coords_list.append(np.asarray([ii,jj]))
-            
-    
-    # c_coords = [central_node_index-1,central_node_index-1]
-    # intra_module_coords__template = []
-    # for ii in range(num_nodes_per_module__level_1):
-        
-    #     distance_list = np.zeros([len(coords_list)])
-    #     for jj in range(len(coords_list)):        
-    #         distance_list[jj] = ( (coords_list[jj][0]-c_coords[0])**2 + (coords_list[jj][1]-c_coords[1])**2 )**(1/2) # euclidean distance
-    
-    #     ind = np.argmin( distance_list )
-    #     intra_module_coords__template.append( coords_list[ind] )
-    #     coords_list = np.delete(coords_list,ind,0) 
     
 
       
