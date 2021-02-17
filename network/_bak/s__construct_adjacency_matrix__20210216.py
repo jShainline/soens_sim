@@ -2,8 +2,8 @@ import numpy as np
 import networkx as nx
 from matplotlib import pyplot as plt
 
-from _functions_network import populate_hierarchy__power_law, populate_hierarchy__geometrical, generate_out_degree_distribution, generate_spatial_structure, determine_indices, neuron_level_rentian_scaling, graph_analysis, populate_hierarchy__arbitrary_square
-from _plotting_network import plot_hierarchy__power_law, plot_hierarchy__geometrical, plot_hierarchy__arbitrary, plot_out_degree_distribution, plot_node_degree_vs_space, plot_distance_matrix, plot_A, plot_nodes_and_modules, plot_rentian
+from _functions_network import populate_hierarchy__power_law, populate_hierarchy__geometrical, generate_out_degree_distribution, generate_spatial_structure, determine_indices, neuron_level_rentian_scaling, graph_analysis
+from _plotting_network import plot_hierarchy__power_law, plot_hierarchy__geometrical, plot_out_degree_distribution, plot_node_degree_vs_space, plot_distance_matrix, plot_A, plot_nodes_and_modules, plot_rentian
 
 from _util import physical_constants
 p = physical_constants()
@@ -33,13 +33,8 @@ gamma = 2
 num_levels_hier = 4
 num_row_col_0 = 7
 delta_num_row_col = 2
-# hierarchy = populate_hierarchy__geometrical(num_row_col_0,delta_num_row_col,num_levels_hier)
-# plot_hierarchy__geometrical(hierarchy)
-
-# arbitrary hierarchy
-num_sub_modules__row_col__list = [5,5,5,1] # [9,5,3,1] # arbitrary except last number must be 1. this is because the entire network can always be viewed as one module
-hierarchy = populate_hierarchy__arbitrary_square(num_sub_modules__row_col__list)
-plot_hierarchy__arbitrary(hierarchy)
+hierarchy = populate_hierarchy__geometrical(num_row_col_0,delta_num_row_col,num_levels_hier)
+plot_hierarchy__geometrical(hierarchy)
 
 #%% generate out-degree distribution
 

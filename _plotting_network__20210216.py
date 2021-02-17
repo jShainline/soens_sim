@@ -47,6 +47,7 @@ def plot_hierarchy__power_law(hierarchy):
 
     return
 
+
 def plot_hierarchy__geometrical(hierarchy):
     
     num_nodes_0 = hierarchy['num_nodes_0']
@@ -93,50 +94,6 @@ def plot_hierarchy__geometrical(hierarchy):
 
     return
 
-def plot_hierarchy__arbitrary(hierarchy):
-    
-    num_levels_hier = hierarchy['H__num_levels_hier']
-    h_vec = hierarchy['h_vec']
-    
-    num_modules_list = hierarchy['M_h__num_submodules_vs_hierarchy']
-    num_nodes_per_module = hierarchy['n_h__num_nodes_per_module_vs_hierarchy']
-    total_nodes = hierarchy['N_h__total_num_nodes']
-    
-    fig, ax = plt.subplots(nrows = 1, ncols = 2, sharex = True, sharey = False, figsize=(15,11))
-    fig.suptitle('Population of network hierarchy, geometrical construction\nnum_levels_hier = {:d}\nTotal nodes = {:5.2e}'.format(num_levels_hier,total_nodes))
-    
-    ax[0].plot(h_vec,num_modules_list, '-o', color = colors['blue3'])
-    ax[0].set_xlabel(r'Hierarchy Level')
-    ax[0].set_ylabel(r'Num Modules')
-    # ax[0].set_ylim([0,num_nodes_0*1.1])
-    # ax[0].legend()
-    
-    ax[1].semilogy(h_vec,num_nodes_per_module, '-o', color = colors['blue3'])
-    ax[1].set_xlabel(r'Hierarchy Level')
-    ax[1].set_ylabel(r'Neurons per module at this level of hierarchy')
-    
-    # ax[0,0].plot(h_vec,num_modules_list, '-o', color = colors['blue3'])
-    # ax[0,0].set_xlabel(r'Hierarchy Level')
-    # ax[0,0].set_ylabel(r'Num Modules')
-    # # ax[0].set_ylim([0,num_nodes_0*1.1])
-    # # ax[0].legend()
-    
-    # ax[0,1].semilogy(h_vec,num_nodes_per_module, '-o', color = colors['blue3'])
-    # ax[0,1].set_xlabel(r'Hierarchy Level')
-    # ax[0,1].set_ylabel(r'Neurons per module at this level of hierarchy')
-    
-    # ax[1,0].semilogy(h_vec,num_nodes_list, '-o', color = colors['blue3'])
-    # ax[1,0].set_xlabel(r'Hierarchy Level')
-    # ax[1,0].set_ylabel(r'Total neurons at this level of hierarchy')
-    # # ax[1].legend()
-    
-    # ax[1,1].semilogy(h_vec,inter_modular_nodes, '-o', color = colors['blue3'])
-    # ax[1,1].set_xlabel(r'Hierarchy Level')
-    # ax[1,1].set_ylabel(r'Number of inter-modular neurons at this level of hierarchy')
-    
-    plt.show()
-
-    return
 
 def plot_out_degree_distribution(out_degree_distribution,num_bins):
     
@@ -192,6 +149,7 @@ def plot_out_degree_distribution(out_degree_distribution,num_bins):
     plt.show()
 
     return
+
 
 def plot_nodes_and_modules(h,s_i):
         
@@ -278,18 +236,20 @@ def plot_A(A):
     
     return
 
+
 def plot_rentian(graph_data,hierarchy):
     
+    num_nodes_0 = hierarchy['num_nodes_0']
     num_levels_hier = hierarchy['H__num_levels_hier']
     
-    # num_modules_list = hierarchy['M_h__num_submodules_vs_hierarchy']
+    num_modules_list = hierarchy['M_h__num_submodules_vs_hierarchy']
     total_nodes = hierarchy['N_h__total_num_nodes']
     
     fig, ax = plt.subplots(nrows = 1, ncols = 1, sharex = True, sharey = False)
-    fig.suptitle('Most basic rentian analysis\nH = {:d}, \nTotal nodes = {:5.2e}'.format(num_levels_hier,total_nodes))
+    fig.suptitle('Most basic rentian analysis\nnum_levels_hier = {:d}, num_nodes_0 = {:d}, num_mod_H = {:d}, \nTotal nodes = {:5.2e}'.format(num_levels_hier,num_nodes_0,num_modules_list[-1].astype(int),total_nodes))
     
     ax.loglog(graph_data['num_nodes_per_module__dense'],graph_data['e_h_hp1__dense'], '-', color = colors['red3'], label = 'fit', linewidth = 1.5)
-    ax.loglog(hierarchy['n_h__num_nodes_per_module_vs_hierarchy'][0:-1],graph_data['e_h_hp1'], '-o', color = colors['blue3'], label = 'data')
+    ax.loglog(hierarchy['num_nodes_per_module'][0:-1],graph_data['e_h_hp1'], '-o', color = colors['blue3'], label = 'data')
     ax.set_xlabel(r'Num Nodes within Modular Partition')
     ax.set_ylabel(r'Edges Emanating from that Partition')
     ax.legend()
@@ -298,6 +258,7 @@ def plot_rentian(graph_data,hierarchy):
     
     return
 
+
 def plot_network_spikes_raster(neuron_spikes__raster):
     
     color_map = mp.colors.ListedColormap([colors['grey1'],colors['black']]) # plt.cm.viridis
@@ -305,7 +266,7 @@ def plot_network_spikes_raster(neuron_spikes__raster):
     num_nodes = np.shape(neuron_spikes__raster)[0]
     num_times = np.shape(neuron_spikes__raster)[1]
 
-    fig, ax = plt.subplots(1,1, figsize = (14,10))
+    fig, ax = plt.subplots(1,1)
     raster_plot = ax.imshow(neuron_spikes__raster, cmap = color_map, interpolation='none', extent=[0,num_times,0,num_nodes], aspect = 'auto', origin = 'lower')
     cbar = fig.colorbar(raster_plot, extend='both')
     cbar.minorticks_on()     
@@ -316,6 +277,7 @@ def plot_network_spikes_raster(neuron_spikes__raster):
     
     
     return
+
 
 def plot_network_spikes_binned(network_spikes__binned):
     
@@ -330,6 +292,7 @@ def plot_network_spikes_binned(network_spikes__binned):
     plt.show()
         
     return
+
 
 def plot_network_spikes_binned__mark_avalanches(network_spikes__binned,start_indices,stop_indices):
     

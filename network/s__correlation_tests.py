@@ -49,7 +49,7 @@ for ii in range(num_neurons):
                 _ind = np.abs( spike_times__i[kk] - spike_times__j[:] ).argmin()
                 C1[ii,jj] += ( np.abs(spike_times__i[kk] - spike_times__j[_ind]) + t_ref )**(-1)
                 
-fig, ax = plt.subplots(1,1)
+fig, ax = plt.subplots(1,1, figsize = (14,10))
 correlation_matrix = ax.imshow(np.transpose(C1[:,:]), cmap = plt.cm.viridis, interpolation='none', extent=[0,num_neurons-1,0,num_neurons-1], aspect = 'auto', origin = 'lower')
 cbar = fig.colorbar(correlation_matrix, extend='both')
 cbar.minorticks_on()     
@@ -60,10 +60,51 @@ plt.show()
             
 #%% correlation function 2: rate based
 
-# neuron_rates = []
-# neuron_rates__time_coords = []
-# for ii in range(num_neurons):
-#     neuron_rates.append( np.diff(neuron_spikes__times[ii])**(-1) )
-#     neuron_rates__time_coords.append(  )
-    
+neuron_rates = []
+neuron_rates__time_coords = []
+for ii in range(num_neurons):
+    neuron_rates.append( np.diff(neuron_spikes__times[ii])**(-1) )
+    neuron_rates__time_coords.append( neuron_spikes__times[ii][:-1] + np.diff(neuron_spikes__times[ii])/2 )
+        
+fig, ax = plt.subplots(1,1, figsize = (14,10))
+for ii in range(num_neurons):
+    ax.plot(neuron_rates__time_coords[ii],neuron_rates[ii])    
+fig.suptitle('Correlation Function 2: rate based')
+ax.set_xlabel(r'time')
+ax.set_ylabel(r'firing rate')   
+plt.show() 
 
+neuron_rates__interp = np.zeros([num_neurons,nt])
+for ii in range(num_neurons):
+    neuron_rates__interp[ii,:] = np.interp(time_vec,neuron_rates__time_coords[ii],neuron_rates[ii])    
+        
+fig, ax = plt.subplots(1,1, figsize = (14,10))
+for ii in range(num_neurons):
+    ax.plot(time_vec,neuron_rates__interp[ii,:], label = 'neuron {}'.format(ii+1))    
+fig.suptitle('Correlation Function 2: rate based')
+ax.set_xlabel(r'time')
+ax.set_ylabel(r'firing rate (interpolated)')  
+ax.legend() 
+plt.show() 
+
+neuron_rates__interp__norm = np.zeros(num_neurons)
+C2 = np.zeros([num_neurons,num_neurons])
+for ii in range(num_neurons):
+    for tt in range(nt):
+        neuron_rates__interp__norm[ii] += neuron_rates__interp[ii,tt]*dt
+    
+for ii in range(num_neurons):
+    for jj in range(num_neurons):
+        if jj != ii:
+            for tt in range(nt):
+                C2[ii,jj] += neuron_rates__interp[ii,tt]*neuron_rates__interp[jj,tt]*dt
+            C2[ii,jj] = C2[ii,jj]/(neuron_rates__interp__norm[ii]*neuron_rates__interp__norm[jj])
+
+fig, ax = plt.subplots(1,1, figsize = (14,10))
+correlation_matrix = ax.imshow(np.transpose(C2[:,:]), cmap = plt.cm.viridis, interpolation='none', extent=[0,num_neurons-1,0,num_neurons-1], aspect = 'auto', origin = 'lower')
+cbar = fig.colorbar(correlation_matrix, extend='both')
+cbar.minorticks_on()     
+fig.suptitle('Correlation Function 2: rate-based')
+ax.set_xlabel(r'neuron index 1')
+ax.set_ylabel(r'neuron index 2')   
+plt.show()   

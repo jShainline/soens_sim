@@ -27,6 +27,7 @@ def A_random(num_nodes,num_edges):
     
     return A
 
+
 def populate_hierarchy__power_law(num_nodes_0,num_levels_hier,gamma, plot = True): # power-law hierarchy ( number of modules at level h of hierarchy: M_h = n_0 * h**(-gamma) )
     
     num_modules_list = np.zeros([num_levels_hier])
@@ -64,6 +65,7 @@ def populate_hierarchy__power_law(num_nodes_0,num_levels_hier,gamma, plot = True
     hierarchy['num_modules_row_col'] = nmrc        
 
     return hierarchy
+
 
 def populate_hierarchy__geometrical(num_row_col_0 = 9, delta_num_row_col = 2, num_levels_hier = 4, plot = True): # power-law hierarchy ( number of modules at level h of hierarchy: M_h = n_0 * h**(-gamma) )
     
@@ -116,37 +118,6 @@ def populate_hierarchy__geometrical(num_row_col_0 = 9, delta_num_row_col = 2, nu
 
     return hierarchy
 
-def populate_hierarchy__arbitrary_square(num_sub_modules__row_col__list = [4,4,4]): # power-law hierarchy ( number of modules at level h of hierarchy: M_h = n_0 * h**(-gamma) )
-    
-    hierarchy = dict()
-    
-    H = len(num_sub_modules__row_col__list)
-    M_h__num_submodules_vs_hierarchy = (np.asarray(num_sub_modules__row_col__list)**2).astype(int)
-    n_h__num_nodes_per_module_vs_hierarchy = np.zeros(H)
-    for h in range(H):
-        n_h__num_nodes_per_module_vs_hierarchy[h] = np.prod(M_h__num_submodules_vs_hierarchy[0:h])
-        
-    num_nodes_per_module = n_h__num_nodes_per_module_vs_hierarchy
-    total_nodes = n_h__num_nodes_per_module_vs_hierarchy[-1]
-        
-    nnrc = np.zeros(H,int)
-    nmrc = np.zeros(H,int)
-    mh = np.zeros(H,int)
-    for h in range(H):
-        nnrc[h] = np.sqrt(num_nodes_per_module[h]) # num nodes in each row/col within a module at the lower level of hierarchy
-        nmrc[h] = np.sqrt(M_h__num_submodules_vs_hierarchy[h]) # num modules in each row/col at this level of hierarchy
-        mh[h] = np.prod(M_h__num_submodules_vs_hierarchy[h:H-1])
-        
-    hierarchy['H__num_levels_hier'] = H
-    hierarchy['h_vec'] = np.arange(1,H+1,1)
-    hierarchy['M_h__num_submodules_vs_hierarchy'] = M_h__num_submodules_vs_hierarchy # number of sub-modules within each module at each level of hierarchy
-    hierarchy['m_h__num_modules_vs_hierarchy'] = mh # number of modules at each level of hierarchy    
-    hierarchy['n_h__num_nodes_per_module_vs_hierarchy'] = n_h__num_nodes_per_module_vs_hierarchy.astype(int) # number of nodes at each level of hierarchy
-    hierarchy['N_h__total_num_nodes'] = total_nodes.astype(int) # total number of nodes in the network            
-    hierarchy['num_nodes_row_col'] = nnrc
-    hierarchy['num_modules_row_col'] = nmrc  
-
-    return hierarchy
 
 def generate_out_degree_distribution(out_degree_functional_form = 'power-law', **kwargs):
     
@@ -192,18 +163,19 @@ def generate_out_degree_distribution(out_degree_functional_form = 'power-law', *
         
     return out_degree_distribution
 
+
 def generate_spatial_structure(hier,o_d_d):
 
     spatial_information = dict()
         
     H = hier['H__num_levels_hier']
     Nh = hier['N_h__total_num_nodes']
-    nh = hier['n_h__num_nodes_per_module_vs_hierarchy']
+    nh = hier['n_h__num_nodes_vs_hierarchy']
     Mh = hier['M_h__num_submodules_vs_hierarchy']
     mh = hier['m_h__num_modules_vs_hierarchy']
     nmrc = hier['num_modules_row_col']
     nnrc = hier['num_nodes_row_col']
-    nnpm = nh # hier['num_nodes_per_module']
+    nnpm = hier['num_nodes_per_module']
 
     # first establish modules and available sites for nodes within modules, all corner referenced to bottom left   
     mod_center_coords = []
@@ -319,6 +291,66 @@ def generate_spatial_structure(hier,o_d_d):
     
     return spatial_information
 
+
+def determine_indices(h,si):
+    
+    nrc = h['num_row_col']
+    
+   
+    # for ii in range(h['num_levels_hier']-1):
+        
+    #     module_max_min_coords__start_corner.append([])
+    #     nnrc = h['num_nodes_row_col'][ii+1]
+    #     nmrc = h['num_modules_row_col'][ii+1]
+        
+    #     for jj in range(h['num_modules_list'][ii+1]):            
+            
+    #         nn_jj = np.floor(jj/nmrc)
+    #         module_max_min_coords__start_corner[ii].append( [ [nn_jj*nnrc,nn_jj*nnrc+nnrc] , [(jj-nmrc*nn_jj)*nnrc,(jj-nmrc*nn_jj)*nnrc+nnrc] ] ) # [[xmin,xmax],[ymin,ymax]]
+
+    # make indices_arrays__intra
+    indices_arrays__intra = []
+    temp_vec = np.arange(0,nrc**2,1)
+    map_array = np.reshape(temp_vec,[nrc,nrc])
+    for ii in range(h['total_num_nodes']):
+                
+        indices_arrays__intra.append([])
+        # indices_arrays__inter.append([])
+        
+        _xy = si['node_coords'][ii]
+        
+        for jj in range(h['num_levels_hier']):
+            
+            nrc = h['num_nodes_row_col'][jj]
+                
+            _x1 = ( np.floor(_xy[0]/nrc)*nrc ).astype(int)
+            _y1 = ( np.floor(_xy[1]/nrc)*nrc ).astype(int)
+            _x2 = _x1+nrc # ( np.ceil(_xy[0]/nrc)*nrc ).astype(int)
+            _y2 = _y1+nrc # ( np.ceil(_xy[1]/nrc)*nrc ).astype(int)
+            
+            if _x2 == _x1: _x2 += 1
+            if _y2 == _y1: _y2 += 1
+            indices_arrays__intra[ii].append( np.concatenate(map_array[_x1:_x2,_y1:_y2]) )  
+
+    indices_arrays__inter = []
+    for ii in range(h['total_num_nodes']):
+        print('ii = {} of {} (num_nodes)'.format(ii+1,h['total_num_nodes']))
+                
+        indices_arrays__inter.append([])
+        
+        for jj in range(h['num_levels_hier']-1):
+                        
+            indices_arrays__inter[ii].append( np.delete(indices_arrays__intra[ii][jj+1], np.where( np.in1d(indices_arrays__intra[ii][jj+1],indices_arrays__intra[ii][jj]) )[0] ) )
+
+    indices_arrays = dict()
+    indices_arrays['intra'] = indices_arrays__intra
+    indices_arrays['inter'] = indices_arrays__inter
+    indices_arrays['map_array'] = map_array
+    # indices_arrays['module_max_min_coords__start_corner'] = module_max_min_coords__start_corner # at each level of hierarcy, for each module, this array gives x-y coordinate ranges in the form [level_of_hierarchy][module_number][[xmin,xmax],[ymin,ymax]]
+    
+    return indices_arrays, h
+
+
 def neuron_level_rentian_scaling(h,s_i,o_d_d,r_e):
         
     rent = dict()
@@ -326,7 +358,7 @@ def neuron_level_rentian_scaling(h,s_i,o_d_d,r_e):
     
     _tn = 0
     for ii in range(h['H__num_levels_hier']-1):
-        _tn += h['n_h__num_nodes_per_module_vs_hierarchy'][ii]**( r_e-1 )                
+        _tn += h['num_nodes_per_module'][ii]**( r_e-1 )                
     rent['norm_factor'] = _tn**(-1)
     # print(rent['norm_factor'])   
     
@@ -334,7 +366,7 @@ def neuron_level_rentian_scaling(h,s_i,o_d_d,r_e):
     o_d_d['node_degrees_vs_h'] = np.zeros([h['N_h__total_num_nodes'],h['H__num_levels_hier']-1])    
     for ii in range(h['N_h__total_num_nodes']):
         for jj in range(h['H__num_levels_hier']-1):
-            o_d_d['node_degrees_vs_h'][ii,jj] = np.round( o_d_d['node_degrees'][ii]*rent['norm_factor'] * ( h['n_h__num_nodes_per_module_vs_hierarchy'][jj]**( r_e-1 ) ) ).astype(int)
+            o_d_d['node_degrees_vs_h'][ii,jj] = np.round( o_d_d['node_degrees'][ii]*rent['norm_factor'] * ( h['num_nodes_per_module'][jj]**( r_e-1 ) ) ).astype(int)
 
     # assign connections at each level of hierarchy with specified spatial profile
     A = np.zeros([h['N_h__total_num_nodes'],h['N_h__total_num_nodes']])    
@@ -372,6 +404,7 @@ def neuron_level_rentian_scaling(h,s_i,o_d_d,r_e):
                 #     print('a node was rejected')
 
     return A, rent, o_d_d
+
 
 def graph_analysis(A,hierarchy,s_i,rent,analyze_path_length = False,analyze_small_world = False):
     
@@ -469,9 +502,9 @@ def graph_analysis(A,hierarchy,s_i,rent,analyze_path_length = False,analyze_smal
     
     #fit to power law
     
-    num_nodes_per_module__dense = np.linspace(hierarchy['n_h__num_nodes_per_module_vs_hierarchy'][0],hierarchy['n_h__num_nodes_per_module_vs_hierarchy'][-2],100)
+    num_nodes_per_module__dense = np.linspace(hierarchy['num_nodes_per_module'][0],hierarchy['num_nodes_per_module'][-2],100)
     
-    e_fit = np.polyfit(np.log10(hierarchy['n_h__num_nodes_per_module_vs_hierarchy'][0:-1]),np.log10(e_h_hp1),1)    
+    e_fit = np.polyfit(np.log10(hierarchy['num_nodes_per_module'][0:-1]),np.log10(e_h_hp1),1)    
     rentian_prefactor = 10**(e_fit[1])
     rentian_exponent = e_fit[0]
     e_h_hp1__dense = rentian_prefactor*num_nodes_per_module__dense**rentian_exponent
@@ -523,3 +556,37 @@ def graph_analysis(A,hierarchy,s_i,rent,analyze_path_length = False,analyze_smal
     
     
     return graph_data
+
+
+#%% scraps
+
+
+
+# proximity_factor = 1
+# A = np.zeros([num_nodes,num_nodes])
+# for ii in range(num_nodes):
+#     k_out_ii = node_degrees[ii].astype(int)
+#     r_out_ii__vec = np.random.exponential(decay_length,k_out_ii) # exponential spatial decay
+#     # print('ii = {} of {}, k_out_ii = {}, len(r_out_ii__vec) = {}'.format(ii+1,num_nodes,k_out_ii,len(r_out_ii__vec)))
+#     for r_out_ii in r_out_ii__vec:     
+#         tracker = 0
+#         candidate_nodes = np.where( np.abs( R_mat[ii,:] - r_out_ii ) <= proximity_factor  )[0]
+#         # print('here0')
+#         if len(candidate_nodes) > 0:
+#             while tracker == 0:
+                
+#                 # print('len(candidate_nodes) = {}'.format(len(candidate_nodes)))
+#                 rand_ind = np.random.randint(0,len(candidate_nodes),1)
+#                 # print('candidate_nodes = {}, rand_ind[0] = {}, candidate_nodes[rand_ind[0]] = {}'.format(candidate_nodes,rand_ind[0],candidate_nodes[rand_ind[0]]))
+    
+#                 if A[ii,candidate_nodes[rand_ind[0]]] == 0:
+#                     A[ii,candidate_nodes[rand_ind[0]]] = 1
+#                     tracker = 1
+#                     # print('here1')
+#                 elif A[ii,candidate_nodes[rand_ind[0]]] == 1:
+#                     candidate_nodes = np.delete(candidate_nodes,rand_ind[0])
+#                     # print('here2')
+#                     if len(candidate_nodes) == 0:
+#                         tracker = 1
+
+# plot_A(A)
