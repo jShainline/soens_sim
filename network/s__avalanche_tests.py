@@ -35,7 +35,7 @@ for ii in range(num_neurons):
     num_spikes = num_spikes__array[ii]
     for jj in range(num_spikes):
         spike_times = np.random.randint(0,tf+dt,size=[num_spikes])
-    neuron_spikes__raster[ii,spike_times] = 1
+    neuron_spikes__raster[ii,spike_times] = 1 # non-event based
     
 plot_network_spikes_raster(neuron_spikes__raster)
 

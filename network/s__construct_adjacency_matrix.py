@@ -2,7 +2,7 @@ import numpy as np
 import networkx as nx
 from matplotlib import pyplot as plt
 
-from _functions_network import populate_hierarchy__power_law, populate_hierarchy__geometrical, generate_out_degree_distribution, generate_spatial_structure, determine_indices, neuron_level_rentian_scaling, graph_analysis, populate_hierarchy__arbitrary_square
+from _functions_network import populate_hierarchy__power_law, populate_hierarchy__geometrical, generate_out_degree_distribution, generate_spatial_structure, neuron_level_rentian_scaling, graph_analysis, populate_hierarchy__arbitrary_square
 from _plotting_network import plot_hierarchy__power_law, plot_hierarchy__geometrical, plot_hierarchy__arbitrary, plot_out_degree_distribution, plot_node_degree_vs_space, plot_distance_matrix, plot_A, plot_nodes_and_modules, plot_rentian
 
 from _util import physical_constants
@@ -37,7 +37,7 @@ delta_num_row_col = 2
 # plot_hierarchy__geometrical(hierarchy)
 
 # arbitrary hierarchy
-num_sub_modules__row_col__list = [5,5,5,1] # [9,5,3,1] # arbitrary except last number must be 1. this is because the entire network can always be viewed as one module
+num_sub_modules__row_col__list = [7,5,3,1] # [9,5,3,1] # arbitrary except last number must be 1. this is because the entire network can always be viewed as one module
 hierarchy = populate_hierarchy__arbitrary_square(num_sub_modules__row_col__list)
 plot_hierarchy__arbitrary(hierarchy)
 
@@ -65,16 +65,6 @@ elif degree_distribution__functional_form == 'power_law':
 num_bins = 10    
 plot_out_degree_distribution(out_degree_distribution,num_bins)
 
-# avg_num_edges = 40
-
-# total_num_nodes = hierarchy['total_num_nodes']
-# tot_num_edges__target = avg_num_edges*total_nodes
-# tot_num_edges__current = np.sum(out_degree_distribution['node_degrees'])
-
-# diff = tot_num_edges__target-tot_num_edges__current
-# print('diff = {}'.format(diff))
-    
-
 #%% place nodes in space
 
 print('assigning spatial coordinates ... ')
@@ -87,22 +77,14 @@ plot_node_degree_vs_space(hierarchy,spatial_information)
 # plot_distance_matrix(spatial_information['distance_mat'],hierarchy['total_num_nodes'])
 # plot_distance_matrix(spatial_information['distance_mat__corner'],hierarchy['total_num_nodes'])
 
-#%% find indices of nodes within and external to each module at each level of hierarchy
-
-# print('finding intra- and inter-modular indices ... ')
-
-# indices_arrays, hierarchy = determine_indices(hierarchy,spatial_information)
-
-
 #%% make connections
 
 print('assigning edges based on neuron-level rent''s rule with spatial dependence ... ')
 
 rentian_exponent = 0.8
 
-spatial_information['spatial_dependence'] = 'exponential' # 'exponential' or 'power_law'
-spatial_information['exponential_decay_factor'] = 3 # P_h(r_k = r) = A exp( -r/r_h ) where r_h = edf*nnrc_h where edf is the exponential_decay_factor set here and nnrc_h is hierarchy['num_nodes_row_col'][h], the length of a module in lattice constants at this level of hierarchy
-# A, rent, out_degree_distribution = neuron_level_rentian_scaling__with_spatial_dependence(hierarchy,indices_arrays,spatial_information,out_degree_distribution,rentian_exponent)
+# spatial_information['spatial_dependence'] = 'exponential' # 'exponential' or 'power_law'
+# spatial_information['exponential_decay_factor'] = 3 # P_h(r_k = r) = A exp( -r/r_h ) where r_h = edf*nnrc_h where edf is the exponential_decay_factor set here and nnrc_h is hierarchy['num_nodes_row_col'][h], the length of a module in lattice constants at this level of hierarchy
 A, rent, out_degree_distribution = neuron_level_rentian_scaling(hierarchy,spatial_information,out_degree_distribution,rentian_exponent)
 
 plot_A(A)
@@ -110,49 +92,11 @@ plot_A(A)
 #%% analyze graph
 
 print('analyzing graph ... ')
-graph_data = graph_analysis(A,hierarchy,spatial_information,rent,analyze_path_length = True,analyze_small_world = True)
+graph_data = graph_analysis(A,hierarchy,spatial_information,rent,analyze_path_length = False, analyze_small_world = False)
 G = graph_data['G']
 
 plot_rentian(graph_data,hierarchy)
 
-
-#%% make connections
-
-# exponential decay params
-# decay_length = 5 # units of lattice constant
-
-# num_bins = 20 # for plotting
-
-
-
-
-
-#%% rescale out-degree distribution to achieve exact desired number of edges 
-
-# avg_num_edges = 40
-
-# total_nodes = hierarchy['total_nodes']
-# tot_num_edges__target = avg_num_edges*total_nodes
-# tot_num_edges__current = np.sum(out_degree_distribution['node_degrees'])
-
-# diff = tot_num_edges__target-tot_num_edges__current
-# print('diff = {}'.format(diff))
-
-# scale_factor = tot_num_edges__current/tot_num_edges__target
-# out_degree_distribution['node_degrees'] = np.round(out_degree_distribution['node_degrees']/scale_factor)
-# tot_num_edges__current = np.sum(out_degree_distribution['node_degrees'])
-
-# diff = tot_num_edges__target-tot_num_edges__current
-# print('diff = {}'.format(diff))
-
-# indices = np.random.randint(0,total_nodes-1,np.round(np.abs(diff)).astype(int))
-# out_degree_distribution['node_degrees'][indices] += np.sign(diff) 
-# tot_num_edges__current = np.sum(out_degree_distribution['node_degrees'])
-
-# diff = tot_num_edges__target-tot_num_edges__current
-# print('diff = {}'.format(diff))
-
-# plot_out_degree_distribution(out_degree_distribution,num_bins)
 
 
 
