@@ -259,6 +259,14 @@ def plot_distance_matrix(distance_mat,num_nodes):
 #     return
 
 def plot_A(A):
+    
+    plt.rcParams['axes.labelsize'] = 14
+    plt.rcParams['ytick.labelsize'] = 14
+    plt.rcParams['xtick.labelsize'] = 14
+    
+    plt.rcParams['figure.figsize'] = [14,11]
+    plt.rcParams['figure.titlesize'] = 14
+    plt.rcParams['legend.fontsize'] = 16
 
     color_map = mp.colors.ListedColormap([colors['grey1'],colors['black']]) # plt.cm.viridis
     
@@ -280,13 +288,17 @@ def plot_A(A):
 
 def plot_rentian(graph_data,hierarchy):
     
+    plt.rcParams['axes.labelsize'] = 14
+    plt.rcParams['ytick.labelsize'] = 14
+    plt.rcParams['xtick.labelsize'] = 14
+    
     num_levels_hier = hierarchy['H__num_levels_hier']
     
     # num_modules_list = hierarchy['M_h__num_submodules_vs_hierarchy']
     total_nodes = hierarchy['N_h__total_num_nodes']
     
-    fig, ax = plt.subplots(nrows = 1, ncols = 1, sharex = True, sharey = False)
-    fig.suptitle('Most basic rentian analysis\nH = {:d}, \nTotal nodes = {:5.2e}'.format(num_levels_hier,total_nodes))
+    fig, ax = plt.subplots(nrows = 1, ncols = 1, sharex = True, sharey = False, figsize = (14,11))
+    fig.suptitle('Most basic rentian analysis\nH = {:d}, \nTotal nodes = {:5.2e}\nRent prefactor = {:6.1f}; Rent exponent = {:5.3f}'.format(num_levels_hier,total_nodes,graph_data['rentian_prefactor'],graph_data['rentian_exponent']))
     
     ax.loglog(graph_data['num_nodes_per_module__dense'],graph_data['e_h_hp1__dense'], '-', color = colors['red3'], label = 'fit', linewidth = 1.5)
     ax.loglog(hierarchy['n_h__num_nodes_per_module_vs_hierarchy'][0:-1],graph_data['e_h_hp1'], '-o', color = colors['blue3'], label = 'data')

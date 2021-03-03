@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 
 from _functions import Ljj_pH as Ljj
 from _functions import ind_in_par as ip
-from util import physical_constants, color_dictionary
+from _util import physical_constants, color_dictionary
 
 colors = color_dictionary()
 p = physical_constants()
