@@ -5,7 +5,8 @@ from matplotlib import pyplot as plt
 from _functions_network import populate_hierarchy__power_law, populate_hierarchy__geometrical, generate_out_degree_distribution, generate_spatial_structure, neuron_level_rentian_scaling, graph_analysis, populate_hierarchy__arbitrary_square
 from _plotting_network import plot_hierarchy__power_law, plot_hierarchy__geometrical, plot_hierarchy__arbitrary, plot_out_degree_distribution, plot_node_degree_vs_space, plot_distance_matrix, plot_A, plot_nodes_and_modules, plot_rentian
 
-from _util import physical_constants
+from _util import physical_constants, color_dictionary
+colors = color_dictionary()
 p = physical_constants()
 
 plt.close('all')
@@ -23,21 +24,21 @@ plt.close('all')
 print('constructing network hierarchy ... ')
 
 # power-law hierarchy ( number of modules at level h of hierarchy: M_h = n_0 * h**(-gamma) )
-num_levels_hier = 3
-num_row_col_0 = 7
-gamma = 2
+# num_levels_hier = 3
+# num_row_col_0 = 7
+# gamma = 2
 # hierarchy = populate_hierarchy__power_law(num_row_col_0**2,num_levels_hier,float(gamma))
 # plot_hierarchy__power_law(hierarchy)
 
 # geometrical hierarchy
-num_levels_hier = 4
-num_row_col_0 = 7
-delta_num_row_col = 2
+# num_levels_hier = 4
+# num_row_col_0 = 7
+# delta_num_row_col = 1
 # hierarchy = populate_hierarchy__geometrical(num_row_col_0,delta_num_row_col,num_levels_hier)
 # plot_hierarchy__geometrical(hierarchy)
 
 # arbitrary hierarchy
-num_sub_modules__row_col__list = [7,5,3,1] # [9,5,3,1] # arbitrary except last number must be 1. this is because the entire network can always be viewed as one module
+num_sub_modules__row_col__list = [5,3,3,1] # [12,4,1] # [4,3,2,1] # [4,3,2,1] # [3,2,1] # [7,5,3,1] # [9,5,3,1] # arbitrary except last number must be 1. this is because the entire network can always be viewed as one module
 hierarchy = populate_hierarchy__arbitrary_square(num_sub_modules__row_col__list)
 plot_hierarchy__arbitrary(hierarchy)
 
@@ -51,8 +52,8 @@ degree_distribution__functional_form = 'gaussian' # 'gaussian' or 'power_law'
 if degree_distribution__functional_form == 'gaussian':
     
     # gaussian degree params
-    center = 200 # mean of gaussian distribution
-    st_dev = 10 # standard deviation of gaussian distribution    
+    center = 5 # mean of gaussian distribution
+    st_dev = 1 # standard deviation of gaussian distribution    
     out_degree_distribution = generate_out_degree_distribution(degree_distribution__functional_form, center = center, st_dev = st_dev, num_nodes = hierarchy['N_h__total_num_nodes'])
     
 elif degree_distribution__functional_form == 'power_law':
@@ -81,7 +82,7 @@ plot_node_degree_vs_space(hierarchy,spatial_information)
 
 print('assigning edges based on neuron-level rent''s rule with spatial dependence ... ')
 
-rentian_exponent = 0.8
+rentian_exponent = 0.6
 
 # spatial_information['spatial_dependence'] = 'exponential' # 'exponential' or 'power_law'
 # spatial_information['exponential_decay_factor'] = 3 # P_h(r_k = r) = A exp( -r/r_h ) where r_h = edf*nnrc_h where edf is the exponential_decay_factor set here and nnrc_h is hierarchy['num_nodes_row_col'][h], the length of a module in lattice constants at this level of hierarchy
@@ -92,10 +93,23 @@ plot_A(A)
 #%% analyze graph
 
 print('analyzing graph ... ')
-graph_data = graph_analysis(A,hierarchy,spatial_information,rent,analyze_path_length = False, analyze_small_world = False)
+graph_data = graph_analysis(A,hierarchy,spatial_information,rent,analyze_path_length = False, analyze_small_world = False, modularity_matrix = False)
 G = graph_data['G']
 
 plot_rentian(graph_data,hierarchy)
+
+#%% plot graph
+fig, ax = plt.subplots(nrows = 1, ncols = 1, sharex = True, sharey = False, figsize = (14,11))
+nx.draw(G, node_size = 80, node_color = colors['green3'])
+plt.show()
+
+
+# pos_dict = dict()
+# for ii in range(len(G.nodes())):
+#     pos_dict[ii] = (spatial_information['node_coords'][ii][0],spatial_information['node_coords'][ii][1])
+# fig, ax = plt.subplots(nrows = 1, ncols = 1, sharex = True, sharey = False, figsize = (14,11))    
+# nx.draw(G, pos = pos_dict)
+# plt.show()
 
 
 

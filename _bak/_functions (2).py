@@ -493,7 +493,7 @@ def neuron_time_stepper(neuron_object):
         # the neuron itself
         #------------------        
                 
-        run_neuron = True
+        run_neuron = False
         if run_neuron == True:
         
             syn_flux = 0

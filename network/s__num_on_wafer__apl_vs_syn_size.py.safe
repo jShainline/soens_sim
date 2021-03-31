@@ -243,87 +243,37 @@ else:
 # plt.suptitle('Network average path length versus width of synapse')
 
 for ii in range(len(N_n__list)):
-    ax[0].semilogx(w_syn__vec[indices_list[ii]]*1e6,L_bar[indices_list[ii][0],ii], linestyle = 'dotted', linewidth = 1.5, color = colors[color_list[ii]], label = 'N_n = {:4.1e}, 1 plane'.format(N_n__list[ii]))    
-    ax[0].semilogx(w_syn__vec[indices_list__10[ii]]*1e6,L_bar__10[indices_list__10[ii][0],ii], linestyle = 'dashed', linewidth = 1.5, color = colors[color_list__10[ii]], label = 'N_n = {:4.1e}, 10 planes'.format(N_n__list[ii]))     
+    ax[0].semilogx(w_syn__vec[indices_list[ii]]*1e6,L_bar[indices_list[ii][0],ii], '-', color = colors[color_list[ii]], label = 'N_n = {:4.1e}, 1 plane'.format(N_n__list[ii]))    
+    ax[0].semilogx(w_syn__vec[indices_list__10[ii]]*1e6,L_bar__10[indices_list__10[ii][0],ii], '-', color = colors[color_list__10[ii]], label = 'N_n = {:4.1e}, 10 planes'.format(N_n__list[ii]))     
 
 ax[0].set_xlim([w_syn__vec[0]*1e6,w_syn__vec[-1]*1e6])
-ax[0].set_ylim([1,4]) 
+ax[0].set_ylim([1,3]) 
 ax[0].grid(which = 'both', axis = 'both')
 
 
 #%% ratio of waveguide area to electronic synapse circuit area
 
-# p_e = 1 # number of planes of active electronic devices
-# p_p = 6 # number of planes of photonic routing waveguides
-# L_apl__list = [2,3] # [2,3] # average network path length
-# w_wg = 1.5e-6
-# w_sy__vec = np.logspace(-6,-2,1000)
-
-# kappa__mat = np.zeros([len(w_sy__vec),len(N_n__list),len(L_apl__list)])
-# for ii in range(len(N_n__list)):
-#     for jj in range(len(L_apl__list)):
-#         kappa__mat[:,ii,jj] = (p_e/p_p**2) * (w_wg/w_sy__vec[:])**2 * np.exp( ( np.log(N_n__list[ii]) - gamma ) / (L_apl__list[jj]-1/2) )
- 
-# # fig, ax = plt.subplots(nrows = 1, ncols = 1, figsize = (14,10))
-# # plt.suptitle('Ratio of waveguide area to electronic synapse circuit area\nw_wg = {:3.1f}um; L_apl = {:d}'.format(w_wg*1e6,L_apl))
-# color_list = [['blue3','blue2'],['green3','green2'],['yellow3','yellow2']]
-# for ii in range(len(N_n__list)):
-#     for jj in range(len(L_apl__list)):
-#         ax[1].loglog(w_sy__vec*1e6,kappa__mat[:,ii,jj], '-', color = colors[color_list[ii][jj]], label = 'N_n = {:4.1e}, p_e = {:d}; p_p = {:d}; L_apl = {:3.1f}'.format(N_n__list[ii],p_e,p_p,L_apl__list[jj]))    
-
-# ax[1].grid('on', which = 'both', axis = 'both')
-# ax[1].set_xlim([1,100])
-# ax[1].set_ylim([1e-1,1e1])
-
-# plt.subplots_adjust(wspace=0, hspace=0)
-
-# if for_paper:
-#     ax[0].set_ylabel(r'Average path length, $\bar{L}$', fontsize = 8)
-#     ax[0].legend(prop={'size':8}) 
-#     ax[0].tick_params(axis = 'both', labelsize = 8)
-#     ax[1].set_xlabel(r'Width of electronic synapse [$\mu$m]', fontsize = 8)
-#     ax[1].set_ylabel(r'Ratio of areas, $\kappa$', fontsize = 8)
-#     ax[1].legend(prop={'size':8})
-#     ax[1].tick_params(axis = 'both', labelsize = 8)
-#     plt.subplots_adjust(wspace=0, hspace=0)
-#     # plt.tight_layout()
-# else:
-#     ax[0].set_ylabel(r'Network average path length, $\bar{L}$')
-#     ax[0].legend() 
-#     ax[1].set_xlabel(r'Width of electronic synapse [$\mu$m]')
-#     ax[1].set_ylabel(r'Ratio of waveguide area to electronic synapse circuit area, $\kappa$')
-#     ax[1].legend()
-#     plt.subplots_adjust(wspace=0, hspace=0)
-
- 
-# plt.show() 
-
-#%% num planes electronic
-
+p_e = 10 # number of planes of active electronic devices
 p_p = 20 # number of planes of photonic routing waveguides
-N__list = [1e5,1e6,1e7] # [2,3] # average network path length
+L_apl = 2 # average network path length
 w_wg = 1.5e-6
-w_sy__vec = np.logspace(-6,-2,1000)
-N__list = [1e5,1e6,1e7]
-L__list = [2,3]
+w_sy__vec = np.logspace(-6,-3,1000)
 
-p_e__mat = np.zeros([len(w_sy__vec),len(N__list),len(L__list)])
-for ii in range(len(N__list)):
-    for jj in range(len(L__list)):
-        p_e__mat[:,ii,jj] = ((p_p*w_sy__vec)/w_wg)**2 * np.exp( ( gamma + (2*np.log(N__list[ii])-2*gamma)/(L__list[jj]-0.5) + np.log(w_wg**2/(p_p**2*A_8)) ) / (L__list[jj]-0.5) )
+kappa__mat = np.zeros([len(w_sy__vec),len(N_n__list)])
+for ii in range(len(N_n__list)):
+    kappa__mat[:,ii] = (p_e/p_p**2) * (w_wg/w_sy__vec[:])**2 * np.exp( ( np.log(N_n__list[ii]) - gamma ) / (L_apl-1/2) )
  
 # fig, ax = plt.subplots(nrows = 1, ncols = 1, figsize = (14,10))
 # plt.suptitle('Ratio of waveguide area to electronic synapse circuit area\nw_wg = {:3.1f}um; L_apl = {:d}'.format(w_wg*1e6,L_apl))
-# color_list = ['blue3','green3','yellow3']
-color_list = [['blue3','blue2'],['green3','green2'],['yellow3','yellow2']]
-linestyle_list = ['dashed','dotted']
-for ii in range(len(N__list)):
-    for jj in range(len(L__list)):
-        ax[1].loglog(w_sy__vec*1e6,p_e__mat[:,ii,jj], linestyle = linestyle_list[jj], linewidth = 1.5, color = colors[color_list[ii][jj]], label = 'N = {:3.1e}, L = {:3.2f}, p_p = {:d}'.format(N__list[ii],L__list[jj],p_p))    
+color_list = ['blue3','green3','yellow3']
+for ii in range(len(N_n__list)):
+    ax[1].loglog(w_sy__vec*1e6,kappa__mat[:,ii], '-', color = colors[color_list[ii]], label = 'N_n = {:4.1e}, p_e = {:d}; p_p = {:d}; L_apl = {:d}'.format(N_n__list[ii],p_e,p_p,L_apl))    
 
 ax[1].grid('on', which = 'both', axis = 'both')
 ax[1].set_xlim([1,100])
-ax[1].set_ylim([1,1e2])
+ax[1].set_ylim([1e-1,1e2])
+ 
+  
 
 plt.subplots_adjust(wspace=0, hspace=0)
 
@@ -332,7 +282,7 @@ if for_paper:
     ax[0].legend(prop={'size':8}) 
     ax[0].tick_params(axis = 'both', labelsize = 8)
     ax[1].set_xlabel(r'Width of electronic synapse [$\mu$m]', fontsize = 8)
-    ax[1].set_ylabel(r'Num electronic planes, $p_e$', fontsize = 8)
+    ax[1].set_ylabel(r'Ratio of areas, $\kappa$', fontsize = 8)
     ax[1].legend(prop={'size':8})
     ax[1].tick_params(axis = 'both', labelsize = 8)
     plt.subplots_adjust(wspace=0, hspace=0)

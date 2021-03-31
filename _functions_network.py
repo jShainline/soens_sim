@@ -373,7 +373,7 @@ def neuron_level_rentian_scaling(h,s_i,o_d_d,r_e):
 
     return A, rent, o_d_d
 
-def graph_analysis(A,hierarchy,s_i,rent,analyze_path_length = False,analyze_small_world = False):
+def graph_analysis(A,hierarchy,s_i,rent,analyze_path_length = False,analyze_small_world = False,modularity_matrix = False):
     
     print('performing graph analysis ...')
     
@@ -478,11 +478,14 @@ def graph_analysis(A,hierarchy,s_i,rent,analyze_path_length = False,analyze_smal
     print('    that took {:7.2}s for rentian analysis'.format(time.time()-st))
     print('    rent exponent = {:4.2f}, targeting {:4.2f}'.format(rentian_exponent,rent['exponent']))
         
-    print('  calculating modularity matrix ...')
-    B = nx.directed_modularity_matrix(G)
-    
-    g = ig.Graph.Adjacency(A.tolist())
-    communities =  ig.GraphBase.community_infomap(g, edge_weights=None, vertex_weights=None,trials=10)
+    if modularity_matrix:
+        print('  calculating modularity matrix ...')
+        B = nx.directed_modularity_matrix(G)
+        
+        graph_data['B'] = B
+        g = ig.Graph.Adjacency(A.tolist())
+        communities =  ig.GraphBase.community_infomap(g, edge_weights=None, vertex_weights=None,trials=10)
+        graph_data['communities'] = communities
 
     
     # this throws an error
@@ -501,7 +504,6 @@ def graph_analysis(A,hierarchy,s_i,rent,analyze_path_length = False,analyze_smal
 
     
     graph_data['G'] = G
-    graph_data['B'] = B
     graph_data['in_degree'] = in_degree_vec
     graph_data['out_degree'] = out_degree_vec
     graph_data['tot_in_degree'] = tot_in_degree
@@ -512,7 +514,6 @@ def graph_analysis(A,hierarchy,s_i,rent,analyze_path_length = False,analyze_smal
     graph_data['standard_deviation_out_degree'] = standard_deviation_out_degree
     # graph_data['clustering'] = clustering
     
-    graph_data['communities'] = communities
     graph_data['connections'] = connections_list
     graph_data['e_h_hp1'] = e_h_hp1
     graph_data['num_nodes_per_module__dense'] = num_nodes_per_module__dense
