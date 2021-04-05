@@ -7,9 +7,9 @@ colors = color_dictionary()
 
 plt.close('all')
 
-plt.rcParams['axes.labelsize'] = 14
-plt.rcParams['ytick.labelsize'] = 14
-plt.rcParams['xtick.labelsize'] = 14
+plt.rcParams['axes.labelsize'] = 12
+plt.rcParams['ytick.labelsize'] = 12
+plt.rcParams['xtick.labelsize'] = 12
 
 plt.rcParams['figure.figsize'] = [14,11]
 plt.rcParams['figure.titlesize'] = 14
@@ -348,3 +348,157 @@ else:
  
 plt.show() 
 
+#%% average path length vs synapse width alt
+
+N_n__list = [1e5,1e6,1e7]
+p_e__list = [1,10]
+p_p__list = [1,10]
+w_sy__vec = np.logspace(-6,-3,100)
+w_wg__vec = np.logspace(-6,-5,100)
+A_syn = w_syn__vec**2
+N_syn = A_8/A_syn
+
+L_bar_e = np.zeros([len(w_syn__vec),len(N_n__list),len(p_e__list)])
+L_bar_p = np.zeros([len(w_syn__vec),len(N_n__list),len(p_p__list)])
+indices_list = []
+L_bar__10 = np.zeros([len(w_syn__vec),len(N_n__list)])
+indices_list__e = []
+indices_list__p = []
+
+for ii in range(len(N_n__list)):
+    indices_list__e.append([])
+    for jj in range(len(p_e__list)):
+        k = p_e__list[jj]*A_8/(w_sy__vec**2 * N_n__list[ii]) 
+        L_bar_e[:,ii,jj] = ( np.log(N_n__list[ii]) - gamma ) / np.log(k) + 1/2
+        indices_list__e[ii].append( np.where( L_bar_e[:,ii,jj] > 0 ) )
+
+for ii in range(len(N_n__list)):
+    indices_list__p.append([])
+    for jj in range(len(p_p__list)):
+        k = ( p_p__list[jj]/w_wg__vec)*np.sqrt(A_8/N_n__list[ii]) 
+        L_bar_p[:,ii,jj] = ( np.log(N_n__list[ii]) - gamma ) / np.log(k) + 1/2
+        indices_list__p[ii].append( np.where( L_bar_p[:,ii,jj] > 0 ) )
+
+color_list = ['blue3','green3','yellow3']
+linestyle_list = ['solid','dashed','dotted']
+fig, ax = plt.subplots(nrows = 2, ncols = 1, sharex = False, sharey = False, figsize = (14,10))
+
+# plt.suptitle('Network average path length versus width of synapse')
+
+for ii in range(len(N_n__list)):
+    for jj in range(len(p_e__list)):
+        ax[0].semilogx(w_sy__vec[indices_list__e[ii][jj]]*1e6,L_bar_e[indices_list__e[ii][jj],ii,jj][0], linestyle = linestyle_list[jj], linewidth = 1.5, color = colors[color_list[ii]], label = 'N_n = {:4.1e}, p_e = {:d}'.format(N_n__list[ii],p_e__list[jj]))    
+        
+for ii in range(len(N_n__list)):
+    for jj in range(len(p_p__list)):
+        ax[1].plot(w_wg__vec[indices_list__p[ii][jj]]*1e6,L_bar_p[indices_list__p[ii][jj],ii,jj][0], linestyle = linestyle_list[jj], linewidth = 1.5, color = colors[color_list[ii]], label = 'N_n = {:4.1e}, p_p = {:d}'.format(N_n__list[ii],p_p__list[jj]))            
+
+ax[0].set_xlim([w_sy__vec[0]*1e6,w_sy__vec[-1]*1e6])
+ax[0].set_ylim([1,5]) 
+ax[0].grid(which = 'both', axis = 'both')
+ax[0].set_xlabel(r'$w_{sy}$ [$\mu$m]', fontsize = 12)
+ax[0].set_ylabel(r'$\bar{L}$', fontsize = 12)
+ax[0].legend(prop={'size':10}) 
+
+ax[1].set_xlim([w_wg__vec[0]*1e6,w_wg__vec[-1]*1e6])
+ax[1].set_ylim([1,5]) 
+ax[1].grid(which = 'both', axis = 'both')
+ax[1].set_xlabel(r'$w_{wg}$ [$\mu$m]', fontsize = 12)
+ax[1].set_ylabel(r'$\bar{L}$', fontsize = 12)
+ax[1].legend(prop={'size':10}) 
+
+
+#%% num planes alt
+
+N__list = np.logspace(4,8,1000)
+w_wg__list = [1.5e-6,3e-6,6e-6]
+w_sy__list = np.logspace(-6,-4,3)
+L__list = [2,3]
+
+p_e__mat = np.zeros([len(N__list),len(w_sy__vec),len(L__list)])
+p_p__mat = np.zeros([len(N__list),len(w_sy__vec),len(L__list)])
+for ii in range(len(w_sy__list)):
+    for jj in range(len(L__list)):
+        k = np.exp( ( np.log(N__list) - gamma ) / (L__list[jj]-1/2) )
+        p_p__mat[:,ii,jj] =  k * w_wg__list[ii] * np.sqrt(N__list/A_8)
+        p_e__mat[:,ii,jj] = k * w_sy__list[ii]**2 * N__list/A_8
+ 
+fig, ax = plt.subplots(nrows = 2, ncols = 1, sharex = True, sharey = False, figsize = (14,10))
+# plt.suptitle('Ratio of waveguide area to electronic synapse circuit area\nw_wg = {:3.1f}um; L_apl = {:d}'.format(w_wg*1e6,L_apl))
+# color_list = ['blue3','green3','yellow3']
+color_list = [['blue3','blue2','blue1'],['green3','green2','green1'],['yellow3','yellow2','yellow1']]
+linestyle_list = ['dashed','dotted','solid']
+for ii in range(len(w_sy__list)):
+    for jj in range(len(L__list)):
+        ax[0].loglog(N__list,p_p__mat[:,ii,jj], linestyle = linestyle_list[jj], linewidth = 1.5, color = colors[color_list[ii][jj]], label = 'w_wg = {:3.1f}um, L = {:3.2f}'.format(w_wg__list[ii]*1e6,L__list[jj]))    
+        ax[1].loglog(N__list,p_e__mat[:,ii,jj], linestyle = linestyle_list[jj], linewidth = 1.5, color = colors[color_list[ii][jj]], label = 'w_sy = {:3.1f}um, L = {:3.2f}'.format(w_sy__list[ii]*1e6,L__list[jj]))    
+
+ax[0].grid('on', which = 'both', axis = 'both')
+ax[1].grid('on', which = 'both', axis = 'both')
+ax[1].set_xlim([N__list[0],N__list[-1]])
+
+ax[0].set_ylim([1,3e1])
+ax[1].set_ylim([1,3e1])
+
+
+ax[0].set_ylabel(r'$p_p$', fontsize = 14)
+ax[0].legend(prop={'size':14}) 
+ax[0].tick_params(axis = 'both', labelsize = 14)
+
+ax[1].set_ylabel(r'$p_e$', fontsize = 14)
+ax[1].legend(prop={'size':14}) 
+ax[1].tick_params(axis = 'both', labelsize = 14)
+
+ax[1].set_xlabel(r'$N_{300}$', fontsize = 14)
+
+plt.subplots_adjust(wspace=0, hspace=0)
+ 
+plt.show() 
+
+#%% num planes alt alt
+
+N__list = np.logspace(4,7,1000)
+w_wg__list = [1.5e-6,3e-6,6e-6]
+w_sy__list = np.logspace(-5,-4,6)
+L__bar = 2.5
+
+p_e__mat = np.zeros([len(N__list),len(w_sy__list)])
+for ii in range(len(w_sy__list)):
+    k = np.exp( ( np.log(N__list) - gamma ) / (L__bar-1/2) )
+    p_e__mat[:,ii] = np.ceil( k * w_sy__list[ii]**2 * N__list/A_8 )
+ 
+p_p__mat = np.zeros([len(N__list),len(w_sy__list)])
+for ii in range(len(w_wg__list)):
+    k = np.exp( ( np.log(N__list) - gamma ) / (L__bar-1/2) )
+    p_p__mat[:,ii] = np.ceil( k * w_wg__list[ii] * np.sqrt(N__list/A_8) )
+        
+fig, ax = plt.subplots(nrows = 1, ncols = 1, sharex = True, sharey = False, figsize = (14,10))
+# plt.suptitle('Ratio of waveguide area to electronic synapse circuit area\nw_wg = {:3.1f}um; L_apl = {:d}'.format(w_wg*1e6,L_apl))
+# color_list = ['blue3','green3','yellow3']
+# color_list__e = ['blue5','blue4','blue3','blue2','blue1','green5','green4','green3','green2','green1','yellow5','yellow4','yellow3','yellow2','yellow1','red5','red4','red3','red2','yellow1']
+color_list__e = ['blue5','blue3','blue1','green1','green3','green5']
+linestyle_list = ['solid','dashed','dashed','dashed','dashed','solid']
+linewidth_list = [2,1.5,1.5,1.5,1.5,2]
+for ii in range(len(w_sy__list)):
+    ax.loglog(N__list,p_e__mat[:,ii], linestyle = linestyle_list[ii], linewidth = linewidth_list[ii], color = colors[color_list__e[ii]], label = 'w_sy = {:3.1f}um, L = {:3.2f}'.format(w_sy__list[ii]*1e6,L__bar))    
+
+# linestyle_list = ['dashed','dotted','dashdot']
+linestyle_list = ['solid','solid','solid']
+color_list__p = ['red5','red3','red1']
+for ii in range(len(w_wg__list)):
+    ax.loglog(N__list,p_p__mat[:,ii], linestyle = linestyle_list[ii], linewidth = 2, color = colors[color_list__p[ii]], label = 'w_wg = {:3.1f}um, L = {:3.2f}'.format(w_wg__list[ii]*1e6,L__bar))    
+        
+# ax.set_xlim([N__list[0],N__list[-1]])
+ax.set_xlim([3e4,5e6])
+ax.set_ylim([1,3e1])
+
+ax.set_ylabel(r'Number of planes $p_p$ and $p_e$', fontsize = 12)
+ax.set_xlabel(r'$N_{300}$', fontsize = 12)
+
+ax.legend(prop={'size':10}) 
+ax.tick_params(axis = 'both', labelsize = 12)
+ax.grid('on', which = 'both', axis = 'both')
+
+plt.subplots_adjust(wspace=0, hspace=0)
+ 
+plt.show() 
