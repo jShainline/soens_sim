@@ -95,6 +95,24 @@ for ii in range(len(Ic_vec)):
 
 #%% dendritic tree
 
-N = 1000 # total number of synapses
-n = 10 # fan-in factor (number of inputs to each dendrite)
-h = np.log(N)/np.log(n)
+# N = 1000 # total number of synapses
+# n = 10 # fan-in factor (number of inputs to each dendrite)
+# h = np.log(N)/np.log(n)
+
+h_vec = [3,4,5]
+color_list = ['blue3','red3','green3']
+fig, ax = plt.subplots(nrows = 1, ncols = 1, sharex = True, sharey = False, figsize = (tn,tn/1.618))
+for ii in range(len(h_vec)):
+    ax.loglog(N_vec,N_vec**(1/h_vec[ii]), color = colors[color_list[ii]], label = 'h = {:d}'.format(h_vec[ii]))
+ax.set_ylabel(r'$n = N^{1/h}$')
+ax.set_xlabel(r'$N$')
+ax.tick_params(axis = 'both')
+ax.grid(which = 'both', axis = 'both')
+ax.set_xlim([N_vec[0],N_vec[-1]])
+# ax.set_ylim([0.01,1])
+# plt.subplots_adjust(wspace=0, hspace=0)
+
+ax.legend()
+plt.tight_layout()
+plt.show()
+
