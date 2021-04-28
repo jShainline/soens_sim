@@ -11,65 +11,59 @@ import WRSpice
 
 # tempCirFile only netlist
 # export your netlist to a cir file using 'deck' command in xic
-# open the cir file and remove all lines except the netlist lines
+# open the cir file and remove all lines except the netlist lines (include .model)
 # replace all values by Params, you want to sweep, with white space around
 # Component names don't need any changes
 # VERY IMPORTTANT Leave a blank line in the start and end of the  cir file
 
 #%% inputs
 
-# dendritic series bias current
-dIb = 5
-Ib_vec = np.arange(115,140+dIb,dIb) # uA
+# dendritic bias current
+dIde = 5
+Ide_vec = np.arange(210,300+dIde,dIde) # uA
 
-# dendritic plasticity bias current
-num_steps = 21 # num steps on either side of zero
-max_flux = Phi0/2
-flux_resolution = max_flux/num_steps
-Mp = 77.5
-Ip_max = max_flux/Mp
-Ip_vec = np.linspace(0,Ip_max,num_steps)
-Ip_vec = np.concatenate((np.flipud(-Ip_vec)[0:-1],Ip_vec)) 
+# dendritic integration loop saturation capacity bias current
+dIsc = 5
+Isc_vec = np.arange(70,100+dIsc,dIsc)
 
 # activity flux input
-Ma = np.sqrt(400*12.5)
-Ia_max = max_flux/Ma
+max_flux = p['Phi0']/2
+Ma = np.sqrt(200e-12*10.3e-12)
+Ia_max = 1e6*max_flux/Ma
+
+# jtl inductors
+Ljtl1 = 20.6 # pH
 
 #%%
-rate = WRSpice.WRSpice(tempCirFile = 'dend__4jj__one_bias__plasticity__mid_betaL__lin_ramp', OutDatFile = 'dend_4jj_one_bias_plstc_lin_ramp_') # no file extentions
+rate = WRSpice.WRSpice(tempCirFile = 'dend__4jj__lin_ramp__100uA', OutDatFile = 'dend_4jj_lin_ramp_100uA_') # no file extentions
 rate.pathWRSSpice = '/raid/home/local/xictools/wrspice.current/bin/wrspice'  # for running on grumpy
 # rate.pathWRSSpice='C:/usr/local/xictools/wrspice/bin/wrspice.bat' # for local computer
 
-rate.save = 'L8#branch v(2)' # list all vectors you want to save
+rate.save = 'i(L2) v(5)' # list all vectors you want to save
 rate.pathCir = ''
 
 
 # FileFormat = 'Ib{:05.2f}uA_Ip{:05.2f}uA_rmp{:1d}'
-FileFormat = 'Ib{:05.2f}uA_Ip{:05.2f}uA'
+FileFormat = 'Ide{:06.2f}uA_Isc{:06.2f}uA_Ljtl1{:5.2f}pH'
 # for aa in [-1,1]: # don't want both sides of in activity flux; negative gives undesirable response shape
-for ii in range(len(Ib_vec)):
-    Ib = Ib_vec[ii]
-    for jj in range(len(Ip_vec)):
-        Ip = Ip_vec[jj]
+for ii in range(len(Ide_vec)):
+    Ide = Ide_vec[ii]
+    for jj in range(len(Isc_vec)):
+        Isc = Isc_vec[jj]
         
-        # if aa == -1:
-        #     _tn = 1
-        # elif aa == 1:
-        #     _tn = 2
-        # print('aa = {} of {}; ii = {} of {}; jj = {} of {}'.format(_tn,2,ii+1,len(Ib_vec),jj+1,len(Ip_vec)))
-
-        print('ii = {} of {}; jj = {} of {}'.format(ii+1,len(Ib_vec),jj+1,len(Ip_vec)))            
+        print('ii = {} of {}; jj = {} of {}'.format(ii+1,len(Ide_vec),jj+1,len(Isc_vec)))            
             
-        FilePrefix = FileFormat.format(Ib,Ip)
+        FilePrefix = FileFormat.format(Ide,Isc,Ljtl1)
         rate.FilePrefix = FilePrefix
                  
         Params = {          
-        'Ip':'{:9.6f}u'.format(np.round(Ip,6)),
-        'Ib':'{:6.2f}u'.format(np.round(Ib,2)),
-        'Ia':'{:4.2f}u'.format(Ia_max)
+        'Isc':'{:6.2f}u'.format(np.round(Isc,2)),
+        'Ide':'{:6.2f}u'.format(np.round(Ide,2)),
+        'Ia':'{:6.2f}u'.format(np.round(Ia_max,2)),
+        'Ljtl1':'{:5.2f}p'.format(Ljtl1)
         }
     
         rate.Params = Params
         rate.stepTran = '10p'
-        rate.stopTran = '101n'
+        rate.stopTran = '102n'
         rate.doAll()

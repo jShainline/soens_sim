@@ -3,11 +3,12 @@ import numpy as np
 from matplotlib import pyplot as plt
 import time
 from scipy.signal import find_peaks
+import sys
 
 # from soen_sim import input_signal, synapse, dendrite, neuron
 from _plotting import plot_error_mat, plot_fq_peaks, plot_fq_peaks__dt_vs_bias, plot_wr_data__currents_and_voltages
 from _functions import Ljj, dendrite_current_splitting, read_wr_data
-from util import physical_constants
+from _util import physical_constants
 p = physical_constants()
 
 plt.close('all')
@@ -16,23 +17,23 @@ plt.close('all')
 
 I_drive = 0
 
-Ic = 40e-6
-I_b = [71.5e-6,36e-6,35e-6]
-Lm2 = 10e-12
-M_direct = np.sqrt(200e-12*Lm2)
-Ldr1 = 10e-12
-Ldr2 = 26e-12
-L1 = 200e-12
-L2 = 77.5e-12
-L3 = 7.75e-9
-Idr1_prev = 31e-6
-Idr2_prev = 31e-6
-Ij2_prev = 34e-6
-Ij3_prev = 36e-6
+Ic = 100e-6
+I_b = [240e-6,0e-6,100e-6]
+Lm2 = 0 # 10.3e-12
+M_direct = 2*0.5*np.sqrt(400e-12*Lm2)
+Ldr1 = 5.17e-12
+Ldr2 = 5.17e-12
+L1 = 10.3e-12
+L2 = 10.3e-12
+L3 = 10.3e-9
+Idr1_prev = 80e-6
+Idr2_prev = 80e-6
+Ij2_prev = 80e-6
+Ij3_prev = 80e-6
 
-load_wr = True
+load_wr = False
 
-for ii in range(5):
+for ii in range(15):
     Idr1_next, Idr2_next, Ij2_next, Ij3_next, I1, I2, I3 = dendrite_current_splitting(Ic,I_drive,I_b,M_direct,Lm2,Ldr1,Ldr2,L1,L2,L3,Idr1_prev,Idr2_prev,Ij2_prev,Ij3_prev)
     Idr1_prev = Idr1_next
     Idr2_prev = Idr2_next
@@ -44,7 +45,11 @@ Idr2_soen = Idr2_next
 Ij2_soen = Ij2_next
 Ij3_soen = Ij3_next
 
-if load_wr == True:
+print('Idr1 = {:6.2f}uA\nIdr2 = {:6.2f}uA\nIj2 = {:6.2f}uA\nIj3 = {:6.2f}uA\n'.format(Idr1_soen*1e6,Idr2_soen*1e6,Ij2_soen*1e6,Ij3_soen*1e6))
+
+if load_wr == False:
+    sys.exit()
+elif load_wr == True:
     directory = 'wrspice_data'
     file_name = 'dendrite_init_currents.dat'
     # data_to_plot = ['L3#branch','L4#branch','L8#branch','v(3)','v(4)','v(5)']#'L0#branch','L1#branch','L2#branch',
