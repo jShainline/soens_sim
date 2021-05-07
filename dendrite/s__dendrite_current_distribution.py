@@ -18,18 +18,21 @@ plt.close('all')
 I_drive = 0
 
 Ic = 100e-6
-I_b = [240e-6,0e-6,100e-6]
-Lm2 = 0 # 10.3e-12
-M_direct = 2*0.5*np.sqrt(400e-12*Lm2)
-Ldr1 = 5.17e-12
-Ldr2 = 5.17e-12
-L1 = 10.3e-12
-L2 = 10.3e-12
+I_b = [140e-6,69e-6,71e-6]
+Lin = 200e-12
+Ldr1 = (p['Phi0']/(2*Ic))/2
+Ldr2 = Ldr1
+k = 1
+M_direct = k*np.sqrt(Lin*Ldr1)
+L1 = 1e6*p['Phi0']/(2*Ic)
+L2 = p['Phi0']/(2*Ic)
 L3 = 10.3e-9
 Idr1_prev = 80e-6
 Idr2_prev = 80e-6
 Ij2_prev = 80e-6
 Ij3_prev = 80e-6
+
+Lm2 = 0
 
 load_wr = False
 

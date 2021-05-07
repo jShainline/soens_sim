@@ -42,6 +42,68 @@ L_dr = p['Phi0']/(2*Ic)
 
 L_di2_vec = np.zeros([len(k1),len(L_dc3),len(N_vec)])
 
+fig, ax = plt.subplots(nrows = 2, ncols = 1, sharex = True, sharey = False, figsize = (fig_size,1.5*fig_size))
+plt.suptitle('Max flux criterion, vary L_dc3\nIc = {:6.2f}uA, I_di_sat = {:6.2f}uA, L_dc1 = {:5.2f}pH, L_dc2 = {:4.2f}L_dc3'.format(Ic*1e6,I_di_sat*1e6,L_dc1*1e12,alpha))
+color_list = [['blue1','blue3','blue4','blue5'],['green1','green3','green4','green5']]
+linestyle_list = ['solid','dashdot']
+for ii in range(len(k1)):
+    for jj in range(len(L_dc3)):
+        L_dc2 = alpha*L_dc3[jj]
+        L_di2_vec[ii,jj,:] = (1/(L_dc1*L_dc3[jj]*L_dr)) * ( (Phi_dr_max/(beta*Ic*k1[ii]*k2[ii])) * (L_dc1 + (L_dc3[jj]*(1+alpha))/N_vec[:] ) )**2
+        # L_di2_vec[ii,jj,:] = (2*Ic/( k1[ii]**2 * k2[ii]**2 * L_dc1 * L_dc3[jj] * p['Phi0'])) * ( (Phi_dr_max/(N_vec[:]*I_di_sat)) * (N_vec[:]*L_dc1 + L_dc2 + L_dc3[jj]) )**2
+        # L_di2_vec[ii,jj,:] = (1/L_dc3[jj]) * ( (Phi_dr_max/(k1[ii]*k2[ii]*N_vec[:]*I_di_sat)) * ( N_vec[:] + (2*Ic/p['Phi0'])*L_dc3[jj]*(1+alpha) ) )**2
+        ax[0].loglog(N_vec[:],L_di2_vec[ii,jj,:]*1e12, color = colors[color_list[ii][jj]], linestyle = linestyle_list[ii], label = 'k = {:4.2f}, L_dc3 = {:6.2f}pH'.format(k1[ii],L_dc3[jj]*1e12)) # , label = 'Lsi2 = Lnc3 = {:5.2f}pH, I0_th_frac_vec = {:5.2f}'.format(Lsi2_vec[kk]*1e12,I0_th_frac_vec[jj])
+ax[0].loglog([N_vec[0],N_vec[-1]],[1e12*p['Phi0']/Ic,1e12*p['Phi0']/Ic], linestyle = 'dotted', color = colors['grey9'], label = 'SFQ')  
+
+ax[0].set_ylabel(r'$L_di2$ [pH]')
+ax[0].tick_params(axis = 'both')
+ax[0].grid(which = 'both', axis = 'both')
+ax[0].set_ylim([1,10000])
+ax[0].legend()
+
+
+L_dc1 = [10e-12,20e-12,40e-12]
+alpha = 0.1 # fraction of L_dc3 that is parasitic # L_dc2_alpha
+L_dc3 = 200e-12 # pH
+L_dc2 = alpha*L_dc3
+L_dr = p['Phi0']/(2*Ic)
+L_di2_vec = np.zeros([len(k1),len(L_dc1),len(N_vec)])
+
+plt.suptitle('Max flux criterion, vary L_dc1\nIc = {:6.2f}uA, I_di_sat = {:6.2f}uA, L_dc3 = {:5.2f}pH, L_dc2 = {:4.2f}L_dc3'.format(Ic*1e6,I_di_sat*1e6,L_dc3*1e12,alpha))
+color_list = [['blue1','blue3','blue4','blue5'],['green1','green3','green4','green5']]
+linestyle_list = ['solid','dashdot']
+for ii in range(len(k1)):
+    for jj in range(len(L_dc1)):
+        
+        L_di2_vec[ii,jj,:] = (1/(L_dc1[jj]*L_dc3*L_dr)) * ( (Phi_dr_max/(beta*Ic*k1[ii]*k2[ii])) * (L_dc1[jj] + (L_dc3*(1+alpha))/N_vec[:] ) )**2
+        ax[1].loglog(N_vec[:],L_di2_vec[ii,jj,:]*1e12, color = colors[color_list[ii][jj]], linestyle = linestyle_list[ii], label = 'k = {:4.2f}, L_dc1 = {:6.2f}pH'.format(k1[ii],L_dc1[jj]*1e12)) # , label = 'Lsi2 = Lnc3 = {:5.2f}pH, I0_th_frac_vec = {:5.2f}'.format(Lsi2_vec[kk]*1e12,I0_th_frac_vec[jj])
+ax[1].loglog([N_vec[0],N_vec[-1]],[1e12*p['Phi0']/Ic,1e12*p['Phi0']/Ic], linestyle = 'dotted', color = colors['grey9'], label = 'SFQ')  
+
+ax[1].set_ylabel(r'$L_di2$ [pH]')
+ax[1].set_xlabel(r'$N$')
+ax[1].tick_params(axis = 'both')
+ax[1].grid(which = 'both', axis = 'both')
+ax[1].set_xlim([N_vec[0],N_vec[-1]])
+ax[1].set_ylim([1,10000])
+ax[1].legend()
+
+plt.subplots_adjust(wspace=0, hspace=0)
+# plt.tight_layout()
+plt.show()
+
+
+
+
+
+
+
+L_dc1 = 20e-12 # pH
+alpha = 0.1 # fraction of L_dc3 that is parasitic # L_dc2_alpha
+L_dc3 = [100e-12,200e-12,400e-12] # pH
+L_dr = p['Phi0']/(2*Ic)
+
+L_di2_vec = np.zeros([len(k1),len(L_dc3),len(N_vec)])
+
 fig, ax = plt.subplots(nrows = 1, ncols = 1, sharex = True, sharey = False, figsize = (fig_size,1.5*fig_size))
 plt.suptitle('Max flux criterion, vary L_dc3\nIc = {:6.2f}uA, I_di_sat = {:6.2f}uA, L_dc1 = {:5.2f}pH, L_dc2 = {:4.2f}L_dc3'.format(Ic*1e6,I_di_sat*1e6,L_dc1*1e12,alpha))
 color_list = [['blue1','blue3','blue4','blue5'],['green1','green3','green4','green5']]
@@ -49,11 +111,25 @@ linestyle_list = ['solid','dashdot']
 for ii in range(len(k1)):
     for jj in range(len(L_dc3)):
         L_dc2 = alpha*L_dc3[jj]
-        L_di2_vec[ii,jj,:] = (1/L_dr) * ( (Phi_dr_max/(beta*Ic*k1[ii]*k2[ii])) * ( np.sqrt(L_dc1/L_dc3[jj]) + np.sqrt(L_dc3[jj]/L_dc1)*((1+alpha)/N_vec[:]) ) )**2
-        # L_di2_vec[ii,jj,:] = (1/(L_dc1*L_dc3[jj]*L_dr)) * ( (Phi_dr_max/(beta*Ic*k1[ii]*k2[ii])) * (L_dc1 + (L_dc3[jj]*(1+alpha))/N_vec[:] ) )**2
+        L_di2_vec[ii,jj,:] = (1/(L_dc1*L_dc3[jj]*L_dr)) * ( (Phi_dr_max/(beta*Ic*k1[ii]*k2[ii])) * (L_dc1 + (L_dc3[jj]*(1+alpha))/N_vec[:] ) )**2
         # L_di2_vec[ii,jj,:] = (2*Ic/( k1[ii]**2 * k2[ii]**2 * L_dc1 * L_dc3[jj] * p['Phi0'])) * ( (Phi_dr_max/(N_vec[:]*I_di_sat)) * (N_vec[:]*L_dc1 + L_dc2 + L_dc3[jj]) )**2
         # L_di2_vec[ii,jj,:] = (1/L_dc3[jj]) * ( (Phi_dr_max/(k1[ii]*k2[ii]*N_vec[:]*I_di_sat)) * ( N_vec[:] + (2*Ic/p['Phi0'])*L_dc3[jj]*(1+alpha) ) )**2
         ax.loglog(N_vec[:],L_di2_vec[ii,jj,:]*1e12, color = colors[color_list[ii][jj]], linestyle = linestyle_list[ii], label = 'k = {:4.2f}, L_dc1 = {:5.2f}pH, L_dc3 = {:6.2f}pH'.format(k1[ii],L_dc1*1e12,L_dc3[jj]*1e12)) # , label = 'Lsi2 = Lnc3 = {:5.2f}pH, I0_th_frac_vec = {:5.2f}'.format(Lsi2_vec[kk]*1e12,I0_th_frac_vec[jj])
+
+L_dc1 = [10e-12,20e-12,40e-12]
+alpha = 0.1 # fraction of L_dc3 that is parasitic # L_dc2_alpha
+L_dc3 = 200e-12 # pH
+L_dc2 = alpha*L_dc3
+L_dr = p['Phi0']/(2*Ic)
+L_di2_vec = np.zeros([len(k1),len(L_dc1),len(N_vec)])
+
+color_list = [['red1','red3','red4','red5'],['yellow1','yellow3','yellow4','yellow5']]
+linestyle_list = ['solid','dashdot']
+for ii in range(len(k1)):
+    for jj in range(len(L_dc1)):
+        
+        L_di2_vec[ii,jj,:] = (1/(L_dc1[jj]*L_dc3*L_dr)) * ( (Phi_dr_max/(beta*Ic*k1[ii]*k2[ii])) * (L_dc1[jj] + (L_dc3*(1+alpha))/N_vec[:] ) )**2
+        ax.loglog(N_vec[:],L_di2_vec[ii,jj,:]*1e12, color = colors[color_list[ii][jj]], linestyle = linestyle_list[ii], label = 'k = {:4.2f}, L_dc1 = {:6.2f}pH, L_dc3 = {:6.2f}pH'.format(k1[ii],L_dc1[jj]*1e12,L_dc3*1e12)) # , label = 'Lsi2 = Lnc3 = {:5.2f}pH, I0_th_frac_vec = {:5.2f}'.format(Lsi2_vec[kk]*1e12,I0_th_frac_vec[jj])
 ax.loglog([N_vec[0],N_vec[-1]],[1e12*p['Phi0']/Ic,1e12*p['Phi0']/Ic], linestyle = 'dotted', color = colors['grey9'], label = 'SFQ')  
 
 ax.set_ylabel(r'$L_di2$ [pH]')
@@ -67,6 +143,9 @@ ax.legend()
 plt.subplots_adjust(wspace=0, hspace=0)
 # plt.tight_layout()
 plt.show()
+
+
+
 
 #%% with inductances specified, calculate fraction of input activity required to drive dendrite to threshold
 
@@ -160,9 +239,26 @@ plt.show()
 
 #%% dendritic tree
 
+# fig, ax = plt.subplots(nrows = 1, ncols = 1, sharex = True, sharey = False)
+# plt.suptitle('Num synapses with dendritic tree vs point neuron')
+
+# color_list = ['blue3','red3','green3','yellow3']
+# for ii in range(len(h_vec)):
+#     ax.plot(Idr_0_frac_vec[:],(P_over_N_vec[:])**(h_vec[ii]-1), color = colors[color_list[ii]], label = 'h = {:d}'.format(h_vec[ii])) # , label = 'Lsi2 = Lnc3 = {:5.2f}pH, I0_th_frac_vec = {:5.2f}'.format(Lsi2_vec[kk]*1e12,I0_th_frac_vec[jj])
+
+# ax.set_ylabel(r'$P_{dt}/P_{pn}$')
+# ax.set_xlabel(r'$I_b/I_c$')
+# ax.tick_params(axis = 'both')
+# ax.grid(which = 'major', axis = 'both')
+# ax.set_xlim([0.4,1]) # Idr_0_frac_vec[0],Idr_0_frac_vec[-1]
+# ax.set_ylim([0,1])
+# # plt.subplots_adjust(wspace=0, hspace=0)
+
+# ax.legend()
+# plt.tight_layout()
+# plt.show()
+
 h_vec = [1,2,3,4,5]
-Idr_0_frac_vec = np.linspace(0,1,1000) # vector of fraction of JJ Ic at which squid is biased
-P_over_N_vec = ((3*np.pi+2)/(2*np.pi)) *(1 - Idr_0_frac_vec)
 
 fig, ax = plt.subplots(nrows = 1, ncols = 1, sharex = True, sharey = False)
 plt.suptitle('Fraction of synapses required for threshold')
@@ -196,34 +292,72 @@ for ii in range(len(ind_list)):
         print('P_dt/N = {:6.4f}%, P_pn/N = {:6.4f}, and P_dt/P_pn = {:6.4f}% for Idr_0/Ic = {:6.4f} and h = {:d}'.format(100*tn1,100*tn2,100*tn,Idr_0_frac_vec[ind_list[ii]],h_vec[jj]))
     print('\n')
 
+# both plots
+
+# fig, ax = plt.subplots(nrows = 2, ncols = 1, sharex = True, sharey = False, figsize = (fig_size,fig_size))
+# plt.suptitle('Num synapses and fraction requried for threshold with dendritic tree vs point neuron')
+
+# color_list = ['blue3','red3','green3','yellow3']
+# for ii in range(len(h_vec)):
+#     ax[0].plot(Idr_0_frac_vec[:],(P_over_N_vec[:])**(h_vec[ii]-1), color = colors[color_list[ii]], label = 'h = {:d}'.format(h_vec[ii])) # , label = 'Lsi2 = Lnc3 = {:5.2f}pH, I0_th_frac_vec = {:5.2f}'.format(Lsi2_vec[kk]*1e12,I0_th_frac_vec[jj])
+
+# ax[0].set_ylabel(r'$P_{dt}/P_{pn}$')
+# ax[0].tick_params(axis = 'both')
+# ax[0].grid(which = 'major', axis = 'both')
+# ax[0].set_xlim([0.4,1]) # Idr_0_frac_vec[0],Idr_0_frac_vec[-1]
+# ax[0].set_ylim([0,1])
+# # plt.subplots_adjust(wspace=0, hspace=0)
+
+# ax[0].legend()
+# plt.tight_layout()
+# plt.show()
+
+# # fig, ax = plt.subplots(nrows = 1, ncols = 1, sharex = True, sharey = False)
+# # plt.suptitle('Fraction of synapses required for threshold')
+# for ii in range(len(h_vec)):
+#     ax[1].plot(Idr_0_frac_vec[:],(P_over_N_vec[:])**h_vec[ii], color = colors[color_list[ii]], label = 'DT, h = {:d}'.format(h_vec[ii]))
+# ax[1].plot(Idr_0_frac_vec[:],(P_over_N_vec[:]), color = colors['black'], label = 'PN')
+
+# ax[1].set_ylabel(r'$P/N$')
+# ax[1].set_xlabel(r'$I_b/I_c$')
+# ax[1].tick_params(axis = 'both')
+# ax[1].grid(which = 'major', axis = 'both')
+# ax[1].set_xlim([0.4,1]) # Idr_0_frac_vec[0],Idr_0_frac_vec[-1]
+# ax[1].set_ylim([0,1])
+# # plt.subplots_adjust(wspace=0, hspace=0)
+
+# ax[1].legend()
+
+# plt.subplots_adjust(wspace=0, hspace=0)
+# # plt.tight_layout()
+# plt.show()
+
 #%% total fraction of active synapses
 
-if 1 == 2:
-    
-    h_vec = [1,2,3,4,5]
-    
-    fig, ax = plt.subplots(nrows = 1, ncols = 1, sharex = True, sharey = False)
-    plt.suptitle('Fraction of synapses required for threshold')
-    for ii in range(len(h_vec)):
-        sum1 = 0
-        sum2 = 0
-        for jj in range(len(h_vec)):
-            sum1 += (P_over_N_vec[:])**h_vec[jj]
-            sum2 += (P_over_N_vec[:])**h_vec[jj]
-        # ax.plot(Idr_0_frac_vec[:],(P_over_N_vec[:])**h_vec[ii], color = colors[color_list[ii]], label = 'DT, h = {:d}'.format(h_vec[ii]))
-        ax.plot(Idr_0_frac_vec[:],(P_over_N_vec[:])**h_vec[ii], color = colors[color_list[ii]], label = 'DT, h = {:d}'.format(h_vec[ii]))
-    
-    ax.set_ylabel(r'$P/N$')
-    ax.set_xlabel(r'$I_b/I_c$')
-    ax.tick_params(axis = 'both')
-    ax.grid(which = 'major', axis = 'both')
-    ax.set_xlim([0.4,1]) # Idr_0_frac_vec[0],Idr_0_frac_vec[-1]
-    ax.set_ylim([0,1])
-    # plt.subplots_adjust(wspace=0, hspace=0)
-    
-    ax.legend()
-    plt.tight_layout()
-    plt.show()
+h_vec = [1,2,3,4,5]
+
+fig, ax = plt.subplots(nrows = 1, ncols = 1, sharex = True, sharey = False)
+plt.suptitle('Fraction of synapses required for threshold')
+for ii in range(len(h_vec)):
+    sum1 = 0
+    sum2 = 0
+    for jj in range(len(h_vec)):
+        sum1 += (P_over_N_vec[:])**h_vec[jj]
+        sum2 += (P_over_N_vec[:])**h_vec[jj]
+    # ax.plot(Idr_0_frac_vec[:],(P_over_N_vec[:])**h_vec[ii], color = colors[color_list[ii]], label = 'DT, h = {:d}'.format(h_vec[ii]))
+    ax.plot(Idr_0_frac_vec[:],(P_over_N_vec[:])**h_vec[ii], color = colors[color_list[ii]], label = 'DT, h = {:d}'.format(h_vec[ii]))
+
+ax.set_ylabel(r'$P/N$')
+ax.set_xlabel(r'$I_b/I_c$')
+ax.tick_params(axis = 'both')
+ax.grid(which = 'major', axis = 'both')
+ax.set_xlim([0.4,1]) # Idr_0_frac_vec[0],Idr_0_frac_vec[-1]
+ax.set_ylim([0,1])
+# plt.subplots_adjust(wspace=0, hspace=0)
+
+ax.legend()
+plt.tight_layout()
+plt.show()
 
 
 #%% SFQ case
