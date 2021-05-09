@@ -29,8 +29,8 @@ Ldr_tot = Ldr1_Ldr2+Lj1+Lj2
 
 #%% choose inductors based on max flux criterion
 Phi_dr_max = p['Phi0']/2
-beta = 1 # 0.4
-I_di_sat = beta*Ic # Ic/2
+gamma = 1 # 0.4
+I_di_sat = gamma*Ic # Ic/2
 
 k1 = [0.5,0.75]
 k2 = [0.5,0.75]
@@ -49,8 +49,8 @@ linestyle_list = ['solid','dashdot']
 for ii in range(len(k1)):
     for jj in range(len(L_dc3)):
         L_dc2 = alpha*L_dc3[jj]
-        L_di2_vec[ii,jj,:] = (1/L_dr) * ( (Phi_dr_max/(beta*Ic*k1[ii]*k2[ii])) * ( np.sqrt(L_dc1/L_dc3[jj]) + np.sqrt(L_dc3[jj]/L_dc1)*((1+alpha)/N_vec[:]) ) )**2
-        # L_di2_vec[ii,jj,:] = (1/(L_dc1*L_dc3[jj]*L_dr)) * ( (Phi_dr_max/(beta*Ic*k1[ii]*k2[ii])) * (L_dc1 + (L_dc3[jj]*(1+alpha))/N_vec[:] ) )**2
+        L_di2_vec[ii,jj,:] = (1/L_dr) * ( (Phi_dr_max/(gamma*Ic*k1[ii]*k2[ii])) * ( np.sqrt(L_dc1/L_dc3[jj]) + np.sqrt(L_dc3[jj]/L_dc1)*((1+alpha)/N_vec[:]) ) )**2
+        # L_di2_vec[ii,jj,:] = (1/(L_dc1*L_dc3[jj]*L_dr)) * ( (Phi_dr_max/(gamma*Ic*k1[ii]*k2[ii])) * (L_dc1 + (L_dc3[jj]*(1+alpha))/N_vec[:] ) )**2
         # L_di2_vec[ii,jj,:] = (2*Ic/( k1[ii]**2 * k2[ii]**2 * L_dc1 * L_dc3[jj] * p['Phi0'])) * ( (Phi_dr_max/(N_vec[:]*I_di_sat)) * (N_vec[:]*L_dc1 + L_dc2 + L_dc3[jj]) )**2
         # L_di2_vec[ii,jj,:] = (1/L_dc3[jj]) * ( (Phi_dr_max/(k1[ii]*k2[ii]*N_vec[:]*I_di_sat)) * ( N_vec[:] + (2*Ic/p['Phi0'])*L_dc3[jj]*(1+alpha) ) )**2
         ax.loglog(N_vec[:],L_di2_vec[ii,jj,:]*1e12, color = colors[color_list[ii][jj]], linestyle = linestyle_list[ii], label = 'k = {:4.2f}, L_dc1 = {:5.2f}pH, L_dc3 = {:6.2f}pH'.format(k1[ii],L_dc1*1e12,L_dc3[jj]*1e12)) # , label = 'Lsi2 = Lnc3 = {:5.2f}pH, I0_th_frac_vec = {:5.2f}'.format(Lsi2_vec[kk]*1e12,I0_th_frac_vec[jj])
@@ -288,7 +288,7 @@ if 1 == 2:
     k1 = 0.5
     k2 = 0.5
     alpha = 0.1 # L^dc2 = alpha L^dc3
-    beta = 0.5 # I^di_sat = beta I_c
+    gamma = 0.5 # I^di_sat = gamma I_c
     
     delta_vec = [1,2,4,8]
     
@@ -297,7 +297,7 @@ if 1 == 2:
     # plt.suptitle('Fraction of synapses required for threshold, SFQ case')
     rhs = np.zeros([len(delta_vec),len(N_vec)])
     for ii in range(len(delta_vec)):
-        rhs[ii,:] = (1/delta_vec[ii]) * ( (Phi_dr_max/(k1*k2*beta)) * ( (1/(N_vec[:]*p['Phi0'])) + 2*delta_vec[ii] * (1+alpha) ) )**2
+        rhs[ii,:] = (1/delta_vec[ii]) * ( (Phi_dr_max/(k1*k2*gamma)) * ( (1/(N_vec[:]*p['Phi0'])) + 2*delta_vec[ii] * (1+alpha) ) )**2
         ax.loglog(N_vec[:],rhs[ii,:], color = colors[color_list[ii]], label = 'delta = {:3.0f}'.format(delta_vec[ii]))
     
     

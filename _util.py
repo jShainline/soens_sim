@@ -1,4 +1,6 @@
 import numpy as np
+from matplotlib import pyplot as plt
+from pylab import *
 
 def color_dictionary():
 
@@ -92,3 +94,178 @@ def physical_constants():
 
     return p 
 
+def set_plot_params(case):
+    
+    pp = dict()
+    
+    if case == 'large':
+    
+        pp['title_font_size'] = 10
+        pp['subtitle_font_size'] = 10
+        pp['axes_labels_font_size'] = 10
+        pp['axes_labels_pad'] = 0 # 4
+        pp['tick_labels_font_size'] = 10
+        pp['legend_font_size'] = 10
+        pp['nominal_linewidth'] = 0.75
+        pp['fine_linewidth'] = 0.5
+        pp['bold_linewidth'] = 2
+        pp['nominal_markersize'] = 2
+        pp['big_markersize'] = 3
+        tn = 14
+        pp['fig_size'] = (tn,tn/1.618)
+        # pp['fig_size'] = (tn,tn/1.2)
+        pp['axes_linewidth'] = 0.75
+        
+        pp['major_tick_width'] = 0.75
+        pp['major_tick_length'] = 3
+        pp['minor_tick_width'] = 0.25
+        pp['minor_tick_length'] = 2
+        
+        pp['xmargin'] = 0 # 0.05 # space between traces and axes
+        pp['ymargin'] = 0.05 # 0.05
+        
+        plt.rcParams['font.family'] = ['sans-serif']
+        plt.rcParams['font.sans-serif'] = 'CMU Sans Serif'#'Computer Modern Sans Serif'
+        plt.rcParams['figure.figsize'] = pp['fig_size']
+        plt.rcParams['figure.titlesize'] = pp['title_font_size']
+        plt.rcParams['figure.autolayout'] = True
+        
+        plt.rcParams['axes.linewidth'] = pp['axes_linewidth']
+        plt.rcParams['axes.grid'] = False
+        plt.rcParams['axes.titlesize'] = pp['subtitle_font_size']
+        plt.rcParams['axes.labelsize'] = pp['axes_labels_font_size']
+        plt.rcParams['axes.labelpad'] = pp['axes_labels_pad']
+        plt.rcParams['axes.xmargin'] = pp['xmargin']
+        plt.rcParams['axes.ymargin'] = pp['ymargin']
+        plt.rcParams['axes.titlepad'] = 0
+        
+        plt.rcParams['legend.fontsize'] = pp['legend_font_size']
+        plt.rcParams['legend.loc'] = 'best'
+        
+        plt.rcParams['savefig.dpi'] = 300
+        plt.rcParams['savefig.format'] = 'pdf'
+        plt.rcParams['savefig.pad_inches'] = 0
+        
+        plt.rcParams['xtick.labelsize'] = pp['tick_labels_font_size']
+        plt.rcParams['xtick.direction'] = 'out'
+        plt.rcParams['xtick.major.bottom'] = True
+        plt.rcParams['xtick.major.top'] = True
+        plt.rcParams['xtick.major.size'] = pp['major_tick_length']
+        plt.rcParams['xtick.major.width'] = pp['major_tick_width']
+        plt.rcParams['xtick.minor.visible'] = True
+        plt.rcParams['xtick.minor.size'] = pp['minor_tick_length']
+        plt.rcParams['xtick.minor.width'] = pp['minor_tick_width']
+        
+        plt.rcParams['ytick.labelsize'] = pp['tick_labels_font_size']
+        plt.rcParams['ytick.direction'] = 'out'
+        plt.rcParams['ytick.major.left'] = True
+        plt.rcParams['ytick.major.right'] = True
+        plt.rcParams['ytick.major.size'] = pp['major_tick_length']
+        plt.rcParams['ytick.major.width'] = pp['major_tick_width']
+        plt.rcParams['ytick.minor.visible'] = True
+        plt.rcParams['ytick.minor.size'] = pp['minor_tick_length']
+        plt.rcParams['ytick.minor.width'] = pp['minor_tick_width']
+        
+        plt.rcParams['font.family'] = ['sans-serif']
+        plt.rcParams['font.sans-serif'] = 'Verdana'#'Computer Modern Sans Serif'
+        plt.rcParams['figure.figsize'] = [15,15/1.618]
+        plt.rcParams['figure.titlesize'] = 14
+        plt.rcParams['axes.titlesize'] = 16
+        plt.rcParams['axes.labelsize'] = 14
+        plt.rcParams['legend.fontsize'] = 12
+        plt.rcParams['xtick.labelsize'] = 14
+        plt.rcParams['ytick.labelsize'] = 14
+        plt.rcParams['figure.autolayout'] = False
+        
+    elif case == 'publication':
+        
+        pp['title_font_size'] = 10
+        pp['subtitle_font_size'] = 10
+        pp['axes_labels_font_size'] = 10
+        pp['axes_labels_pad'] = 0 # 4
+        pp['tick_labels_font_size'] = 10
+        pp['legend_font_size'] = 10
+        pp['nominal_linewidth'] = 0.75
+        pp['fine_linewidth'] = 0.5
+        pp['bold_linewidth'] = 2
+        pp['nominal_markersize'] = 2
+        pp['big_markersize'] = 3
+        tn = 1.1*8.6/2.54
+        pp['fig_size'] = (tn,tn/1.618)
+        # pp['fig_size'] = (tn,tn/1.2)
+        pp['axes_linewidth'] = 0.75
+        
+        pp['major_tick_width'] = 0.75
+        pp['major_tick_length'] = 3
+        pp['minor_tick_width'] = 0.25
+        pp['minor_tick_length'] = 2
+        
+        pp['xmargin'] = 0 # 0.05 # space between traces and axes
+        pp['ymargin'] = 0.05 # 0.05
+        
+        plt.rcParams['font.family'] = ['sans-serif']
+        plt.rcParams['font.sans-serif'] = 'CMU Sans Serif'#'Computer Modern Sans Serif'
+        plt.rcParams['figure.figsize'] = pp['fig_size']
+        plt.rcParams['figure.titlesize'] = pp['title_font_size']
+        plt.rcParams['figure.autolayout'] = True
+        
+        plt.rcParams['axes.linewidth'] = pp['axes_linewidth']
+        plt.rcParams['axes.grid'] = False
+        plt.rcParams['axes.titlesize'] = pp['subtitle_font_size']
+        plt.rcParams['axes.labelsize'] = pp['axes_labels_font_size']
+        plt.rcParams['axes.labelpad'] = pp['axes_labels_pad']
+        plt.rcParams['axes.xmargin'] = pp['xmargin']
+        plt.rcParams['axes.ymargin'] = pp['ymargin']
+        plt.rcParams['axes.titlepad'] = 0
+        
+        plt.rcParams['legend.fontsize'] = pp['legend_font_size']
+        plt.rcParams['legend.loc'] = 'best'
+        
+        plt.rcParams['savefig.dpi'] = 300
+        plt.rcParams['savefig.format'] = 'pdf'
+        plt.rcParams['savefig.pad_inches'] = 0
+        
+        plt.rcParams['xtick.labelsize'] = pp['tick_labels_font_size']
+        plt.rcParams['xtick.direction'] = 'out'
+        plt.rcParams['xtick.major.bottom'] = True
+        plt.rcParams['xtick.major.top'] = True
+        plt.rcParams['xtick.major.size'] = pp['major_tick_length']
+        plt.rcParams['xtick.major.width'] = pp['major_tick_width']
+        plt.rcParams['xtick.minor.visible'] = True
+        plt.rcParams['xtick.minor.size'] = pp['minor_tick_length']
+        plt.rcParams['xtick.minor.width'] = pp['minor_tick_width']
+        
+        plt.rcParams['ytick.labelsize'] = pp['tick_labels_font_size']
+        plt.rcParams['ytick.direction'] = 'out'
+        plt.rcParams['ytick.major.left'] = True
+        plt.rcParams['ytick.major.right'] = True
+        plt.rcParams['ytick.major.size'] = pp['major_tick_length']
+        plt.rcParams['ytick.major.width'] = pp['major_tick_width']
+        plt.rcParams['ytick.minor.visible'] = True
+        plt.rcParams['ytick.minor.size'] = pp['minor_tick_length']
+        plt.rcParams['ytick.minor.width'] = pp['minor_tick_width']
+        
+        plt.rcParams['font.family'] = ['sans-serif']
+        plt.rcParams['font.sans-serif'] = 'Verdana'#'Computer Modern Sans Serif'
+        plt.rcParams['figure.figsize'] = [tn,tn/1.618]
+        plt.rcParams['figure.titlesize'] = 10
+        plt.rcParams['axes.titlesize'] = 10
+        plt.rcParams['axes.labelsize'] = 10
+        plt.rcParams['legend.fontsize'] = 8
+        plt.rcParams['xtick.labelsize'] = 10
+        plt.rcParams['ytick.labelsize'] = 10
+        plt.rcParams['figure.autolayout'] = False    
+    
+   
+    fig_size = tn
+    colors = color_dictionary()
+    plt.rcParams['axes.prop_cycle'] = cycler('color', [colors['blue1'],colors['blue2'],colors['blue3'],colors['blue4'],colors['blue5'],
+                                                        colors['blue4'],colors['blue3'],colors['blue2'],colors['blue1'],
+                                                        colors['red1'],colors['red2'],colors['red3'],colors['red4'],colors['red5'],
+                                                        colors['red4'],colors['red3'],colors['red2'],colors['red1'],
+                                                        colors['green1'],colors['green2'],colors['green3'],colors['green4'],colors['green5'],
+                                                        colors['green4'],colors['green3'],colors['green2'],colors['green1'],
+                                                        colors['yellow1'],colors['yellow2'],colors['yellow3'],colors['yellow4'],colors['yellow5'],
+                                                        colors['yellow4'],colors['yellow3'],colors['yellow2'],colors['yellow1']])
+
+    return fig_size
