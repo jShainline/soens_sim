@@ -6,7 +6,7 @@ from _util import physical_constants, color_dictionary, set_plot_params
 p = physical_constants()
 colors = color_dictionary()
 
-fig_size = set_plot_params('large') # 'publication' or 'large'
+fig_size = set_plot_params('publication') # 'publication' or 'large'
 
 plt.close('all')
 
@@ -40,10 +40,10 @@ alpha = 0.1 # fraction of L_dc3 that is parasitic # L_dc2_alpha
 L_dc3 = [100e-12,200e-12,400e-12] # pH
 L_dr = p['Phi0']/(2*Ic)
 
+#with collection loop
 L_di2_vec = np.zeros([len(k1),len(L_dc3),len(N_vec)])
-
-fig, ax = plt.subplots(nrows = 1, ncols = 1, sharex = True, sharey = False, figsize = (fig_size,1.5*fig_size))
-plt.suptitle('Max flux criterion, vary L_dc3\nIc = {:6.2f}uA, I_di_sat = {:6.2f}uA, L_dc1 = {:5.2f}pH, L_dc2 = {:4.2f}L_dc3'.format(Ic*1e6,I_di_sat*1e6,L_dc1*1e12,alpha))
+fig, ax = plt.subplots(nrows = 2, ncols = 1, sharex = True, sharey = False, figsize = (fig_size,1.2*fig_size))
+plt.suptitle('Max flux criterion with collection loop, vary L_dc3\nIc = {:6.2f}uA, I_di_sat = {:6.2f}uA, L_dc1 = {:5.2f}pH, L_dc2 = {:4.2f}L_dc3'.format(Ic*1e6,I_di_sat*1e6,L_dc1*1e12,alpha))
 color_list = [['blue1','blue3','blue4','blue5'],['green1','green3','green4','green5']]
 linestyle_list = ['solid','dashdot']
 for ii in range(len(k1)):
@@ -53,20 +53,63 @@ for ii in range(len(k1)):
         # L_di2_vec[ii,jj,:] = (1/(L_dc1*L_dc3[jj]*L_dr)) * ( (Phi_dr_max/(gamma*Ic*k1[ii]*k2[ii])) * (L_dc1 + (L_dc3[jj]*(1+alpha))/N_vec[:] ) )**2
         # L_di2_vec[ii,jj,:] = (2*Ic/( k1[ii]**2 * k2[ii]**2 * L_dc1 * L_dc3[jj] * p['Phi0'])) * ( (Phi_dr_max/(N_vec[:]*I_di_sat)) * (N_vec[:]*L_dc1 + L_dc2 + L_dc3[jj]) )**2
         # L_di2_vec[ii,jj,:] = (1/L_dc3[jj]) * ( (Phi_dr_max/(k1[ii]*k2[ii]*N_vec[:]*I_di_sat)) * ( N_vec[:] + (2*Ic/p['Phi0'])*L_dc3[jj]*(1+alpha) ) )**2
-        ax.loglog(N_vec[:],L_di2_vec[ii,jj,:]*1e12, color = colors[color_list[ii][jj]], linestyle = linestyle_list[ii], label = 'k = {:4.2f}, L_dc1 = {:5.2f}pH, L_dc3 = {:6.2f}pH'.format(k1[ii],L_dc1*1e12,L_dc3[jj]*1e12)) # , label = 'Lsi2 = Lnc3 = {:5.2f}pH, I0_th_frac_vec = {:5.2f}'.format(Lsi2_vec[kk]*1e12,I0_th_frac_vec[jj])
-ax.loglog([N_vec[0],N_vec[-1]],[1e12*p['Phi0']/Ic,1e12*p['Phi0']/Ic], linestyle = 'dotted', color = colors['grey9'], label = 'SFQ')  
+        ax[0].loglog(N_vec[:],L_di2_vec[ii,jj,:]*1e12, color = colors[color_list[ii][jj]], linestyle = linestyle_list[ii], label = 'k = {:4.2f}, L_dc1 = {:5.2f}pH, L_dc3 = {:6.2f}pH'.format(k1[ii],L_dc1*1e12,L_dc3[jj]*1e12)) # , label = 'Lsi2 = Lnc3 = {:5.2f}pH, I0_th_frac_vec = {:5.2f}'.format(Lsi2_vec[kk]*1e12,I0_th_frac_vec[jj])
+ax[0].loglog([N_vec[0],N_vec[-1]],[1e12*p['Phi0']/Ic,1e12*p['Phi0']/Ic], linestyle = 'dotted', color = colors['grey9'], label = 'SFQ')  
 
-ax.set_ylabel(r'$L_di2$ [pH]')
-ax.set_xlabel(r'$N$')
-ax.tick_params(axis = 'both')
-ax.grid(which = 'both', axis = 'both')
-ax.set_xlim([N_vec[0],N_vec[-1]])
-ax.set_ylim([1,10000])
-ax.legend()
+ax[0].set_ylabel(r'$L_di2$ [pH]')
+ax[0].tick_params(axis = 'both')
+ax[0].grid(which = 'both', axis = 'both')
+ax[0].set_ylim([1,5e3])
+ax[0].legend()
+plt.subplots_adjust(wspace=0, hspace=0)
+# plt.tight_layout()
+plt.show()
+
+#without collection loop
+Ic_vec = [0.01*Ic,0.1*Ic,Ic]
+L_di2_vec = np.zeros([len(k1),len(Ic_vec),len(N_vec)])
+plt.suptitle('Max flux criterion without collection loop, vary L_dc3\nIc = {:6.2f}uA, I_di_sat = {:6.2f}uA'.format(Ic*1e6,I_di_sat*1e6))
+color_list = [['red1','red3','red5'],['yellow1','yellow3','yellow5']]
+linestyle_list = ['solid','dashdot']
+for ii in range(len(k1)):
+    for jj in range(len(Ic_vec)):
+        I_di_sat__temp = gamma*Ic_vec[jj]
+        L_di2_vec[ii,jj,:] =  (2*N_vec[:]*Ic/p['Phi0']) * (Phi_dr_max/(k1[ii]*N_vec[:]*I_di_sat__temp))**2 # (Phi_dr_max/(k1[ii]**2*N_vec[:]*I_di_sat__temp))**2 * (2*Ic_vec[jj]/p['Phi0']) 
+        ax[1].loglog(N_vec[:],L_di2_vec[ii,jj,:]*1e12, color = colors[color_list[ii][jj]], linestyle = linestyle_list[ii], label = 'k = {:4.2f}, Ic = {:6.2f}uA'.format(k1[ii],Ic_vec[jj]*1e6)) # , label = 'Lsi2 = Lnc3 = {:5.2f}pH, I0_th_frac_vec = {:5.2f}'.format(Lsi2_vec[kk]*1e12,I0_th_frac_vec[jj])
+ax[1].loglog([N_vec[0],N_vec[-1]],[1e12*p['Phi0']/Ic,1e12*p['Phi0']/Ic], linestyle = 'dotted', color = colors['grey9'], label = 'SFQ')  
+
+ax[1].set_ylabel(r'$L_di2$ [pH]')
+ax[1].set_xlabel(r'$N$')
+ax[1].tick_params(axis = 'both')
+ax[1].grid(which = 'both', axis = 'both')
+ax[1].set_xlim([N_vec[0],N_vec[-1]])
+ax[1].set_ylim([3e-1,3e3])
+ax[1].legend()
 
 plt.subplots_adjust(wspace=0, hspace=0)
 # plt.tight_layout()
 plt.show()
+
+# plt.suptitle('Max flux criterion without collection loop, vary L_dc3\nIc = {:6.2f}uA, I_di_sat = {:6.2f}uA'.format(Ic*1e6,I_di_sat*1e6))
+# fig, ax = plt.subplots(nrows = 1, ncols = 1, sharex = True, sharey = False) # , figsize = (fig_size,2*fig_size)
+# linestyle_list = ['solid','dashdot']
+# for ii in range(len(k1)):
+#     for jj in range(len(Ic_vec)):
+#         I_di_sat__temp = gamma*Ic_vec[jj]
+#         L_di2_vec[ii,jj,:] =  (2*N_vec[:]*Ic/p['Phi0']) * (Phi_dr_max/(k1[ii]*N_vec[:]*I_di_sat__temp))**2 # (Phi_dr_max/(k1[ii]**2*N_vec[:]*I_di_sat__temp))**2 * (2*Ic_vec[jj]/p['Phi0']) 
+#         ax.loglog(N_vec[:],L_di2_vec[ii,jj,:]*1e12, color = colors[color_list[ii][jj]], linestyle = linestyle_list[ii], label = 'k = {:4.2f}, Ic = {:6.2f}uA'.format(k1[ii],Ic_vec[jj]*1e6)) # , label = 'Lsi2 = Lnc3 = {:5.2f}pH, I0_th_frac_vec = {:5.2f}'.format(Lsi2_vec[kk]*1e12,I0_th_frac_vec[jj])
+# ax.loglog([N_vec[0],N_vec[-1]],[1e12*p['Phi0']/Ic,1e12*p['Phi0']/Ic], linestyle = 'dotted', color = colors['grey9'], label = 'SFQ')  
+
+# ax.set_ylabel(r'$L_di2$ [pH]')
+# ax.set_xlabel(r'$N$')
+# ax.tick_params(axis = 'both')
+# ax.grid(which = 'both', axis = 'both')
+# ax.set_xlim([1,10])
+# ax.set_ylim([1e-2,1e2])
+# ax.legend()
+
+# plt.tight_layout()
+# plt.show()
 
 #%% with inductances specified, calculate fraction of input activity required to drive dendrite to threshold
 
