@@ -502,3 +502,21 @@ ax.grid('on', which = 'both', axis = 'both')
 plt.subplots_adjust(wspace=0, hspace=0)
  
 plt.show() 
+
+#%% squid washer size estimate
+
+I_c__vec = np.logspace(-5,-3,1000)
+
+fig, ax = plt.subplots(nrows = 1, ncols = 1, sharex = True, sharey = False, figsize = (14,11)) 
+fig.suptitle('Washer size vs squid Ic for beta_L = 1')
+w_sq = p['Phi0']/(np.pi*p['mu0']*I_c__vec)
+w_sy = 3*w_sq
+ax.loglog(I_c__vec*1e6,w_sq*1e6, '-', color = colors['blue3'], label = 'w_sq') # , label = 'Isy = {:5.2f}uA'.format(Isy) 
+ax.loglog(I_c__vec*1e6,w_sy*1e6, '-', color = colors['red3'], label = 'w_sy') # , label = 'Isy = {:5.2f}uA'.format(Isy) 
+     
+ax.set_xlabel(r'$I_{c}$ [$\mu A$]') 
+ax.set_ylabel(r'$w_{sq}$ and $w_{sy}$ [$\mu m$]') 
+ax.grid('on', which = 'both', axis = 'both')
+ax.set_xlim([I_c__vec[0]*1e6,I_c__vec[-1]*1e6])
+ax.set_ylim([1,1e2])
+ax.legend()

@@ -1289,3 +1289,10 @@ def nTron(I_gate,I_on,I_off,r_gate,r_channel,state):
 def ind_in_par(L1,L2):
     
     return (L1*L2/(L1+L2))
+
+def fermi_dirac(E,Ef,V,T):
+    
+    p = physical_constants()
+    fd = ( np.exp( (E-Ef-p['e']*V)/(p['kB']*T) ) + 1 )**(-1)
+    
+    return fd
